@@ -732,3 +732,128 @@ h1 {
   border-top: 2px solid var(--border);
 }
 
+
+/* 基本得点の説明 */
+.scoring-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.scoring-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.scoring-tiles {
+  font-size: 1.05rem;
+  letter-spacing: -3px;
+  white-space: nowrap;
+}
+
+.scoring-item > span:nth-child(2) {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.scoring-item strong {
+  color: var(--accent-dark);
+  white-space: nowrap;
+}
+
+.scoring-panel .small-note {
+  margin-top: 14px;
+}
+
+
+/* ゲーム状況パネル */
+.status-panel {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.status-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  min-width: 0;
+  padding: 18px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 3px 10px rgb(64 58 50 / 4%);
+}
+
+.status-label {
+  color: var(--muted);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.status-name {
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.status-item strong {
+  color: var(--accent-dark);
+  font-size: 1.8rem;
+  line-height: 1.3;
+  font-variant-numeric: tabular-nums;
+}
+
+.progress-track {
+  width: 100%;
+  height: 7px;
+  margin-top: 6px;
+  overflow: hidden;
+  background: var(--empty);
+  border-radius: 999px;
+}
+
+.progress-bar {
+  width: 0%;
+  height: 100%;
+  background: var(--accent);
+  border-radius: inherit;
+  transition: width 0.25s ease;
+}
+
+.status-unit {
+  color: var(--muted);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+/* スマートフォン */
+@media (max-width: 420px) {
+  .status-panel {
+    gap: 10px;
+  }
+
+  .status-item {
+    padding: 14px 12px;
+  }
+
+  .status-item strong {
+    font-size: 1.55rem;
+  }
+
+  .status-label {
+    font-size: 0.58rem;
+  }
+}
+
