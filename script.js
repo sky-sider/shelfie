@@ -265,12 +265,99 @@ let turn = 1;
 // ゲームが終了しているか
 let gameOver = false;
 
+// 選択中の難易度（easy：初級、hard：上級）
+let difficultyMode = null;
+
+/* ========================================
+   プレイ記録の保存
+======================================== */
+
+const RECORDS_STORAGE_KEY = "myShelfieRecords_v1";
+
+function createEmptyRecords() {
+  return {
+    totalPlays: 0,
+    bestScore: 0,
+    bestScoreDate: null,
+    mainAttempts: 0,
+    mainAchieved: 0,
+    subAttempts: 0,
+    subAchieved: 0
+  };
+}
+
+function loadRecords() {
+  try {
+    const saved = localStorage.getItem(RECORDS_STORAGE_KEY);
+
+    if (!saved) {
+      return createEmptyRecords();
+    }
+
+    const parsed = JSON.parse(saved);
+
+    return {
+      ...createEmptyRecords(),
+      ...parsed
+    };
+  } catch (error) {
+    console.error("プレイ記録の読み込みに失敗しました:", error);
+    return createEmptyRecords();
+  }
+}
+
+let playRecords = loadRecords();
+
+function saveRecords() {
+  try {
+    localStorage.setItem(
+      RECORDS_STORAGE_KEY,
+      JSON.stringify(playRecords)
+    );
+  } catch (error) {
+    console.error("プレイ記録の保存に失敗しました:", error);
+    alert("プレイ記録を保存できませんでした。ブラウザの保存設定を確認してください。");
+  }
+}
+
+// ゲーム終了時に記録を更新
+function updatePlayRecords(finalScore) {
+  const today = new Date().toLocaleDateString("ja-JP");
+
+  playRecords.totalPlays++;
+
+  playRecords.mainAttempts++;
+  if (mainObjectiveAchieved) {
+    playRecords.mainAchieved++;
+  }
+
+  playRecords.subAttempts++;
+  if (subObjectiveAchieved) {
+    playRecords.subAchieved++;
+  }
+
+  if (finalScore > playRecords.bestScore ||
+      playRecords.bestScoreDate === null) {
+    playRecords.bestScore = finalScore;
+    playRecords.bestScoreDate = today;
+  }
+
+  saveRecords();
+}
+
 // ========================================
 // 3. HTML要素を取得
 // ========================================
 
 const shelfElement = document.getElementById("shelf");
 const boardElement = document.getElementById("board");
+
+// 難易度選択画面
+const difficultyScreen =
+  document.getElementById("difficulty-screen");
+
+const difficultyButtons =
+  document.querySelectorAll(".difficulty-button");
 
 // 獲得するタイルの並べ替えパネルを作成
 const selectedOrderElement = document.createElement("section");
@@ -302,6 +389,195 @@ const resultModal = document.getElementById("result-modal");
 const finalScoreElement = document.getElementById("final-score");
 const resultRestartButton =
   document.getElementById("result-restart");
+
+/* ========================================
+   プレイ記録画面
+======================================== */
+
+const recordsButton = document.createElement("button");
+recordsButton.type = "button";
+recordsButton.textContent = "📖 プレイ記録";
+recordsButton.className = "records-button";
+recordsButton.style.cssText = `
+  display: block;
+  width: 100%;
+  margin-top: 16px;
+  padding: 12px 16px;
+  border: 1px solid #65795b;
+  border-radius: 12px;
+  background: #65795b;
+  color: #ffffff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+`;
+
+restartButton.insertAdjacentElement("beforebegin", recordsButton);
+restartButton.style.marginTop = "12px";
+
+const recordsModal = document.createElement("div");
+recordsModal.hidden = true;
+recordsModal.setAttribute("role", "dialog");
+recordsModal.setAttribute("aria-modal", "true");
+recordsModal.setAttribute("aria-label", "プレイ記録");
+
+recordsModal.style.cssText = `
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  padding: 20px;
+  background: rgba(40, 39, 34, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+`;
+
+// 起動時はプレイ記録を非表示にする
+recordsModal.style.display = "none";
+
+const recordsCard = document.createElement("section");
+recordsCard.style.cssText = `
+  width: 100%;
+  max-width: 440px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 24px;
+  box-sizing: border-box;
+  border: 1px solid #e1d8c9;
+  border-radius: 20px;
+  background: #fffdf8;
+  color: #4e5147;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+`;
+
+recordsCard.innerHTML = `
+  <p style="margin:0 0 6px;color:#87927b;font-size:11px;
+    font-weight:bold;letter-spacing:0.15em;">
+    MY PLAY RECORDS
+  </p>
+  <h2 style="margin:0 0 6px;font-size:24px;">
+    プレイ記録
+  </h2>
+  <p style="margin:0 0 20px;color:#888477;font-size:13px;">
+    これまでの棚づくりを振り返りましょう。
+  </p>
+
+  <div id="records-content"></div>
+
+  <button id="records-close" type="button"
+    style="width:100%;margin-top:20px;padding:12px;
+    border:0;border-radius:12px;background:#65795b;
+    color:white;font:inherit;font-weight:bold;cursor:pointer;">
+    ゲームに戻る
+  </button>
+`;
+
+recordsModal.appendChild(recordsCard);
+document.body.appendChild(recordsModal);
+
+function renderRecords() {
+  const content = recordsCard.querySelector("#records-content");
+
+  const mainRate = playRecords.mainAttempts
+    ? Math.round(
+        playRecords.mainAchieved / playRecords.mainAttempts * 100
+      )
+    : 0;
+
+  const subRate = playRecords.subAttempts
+    ? Math.round(
+        playRecords.subAchieved / playRecords.subAttempts * 100
+      )
+    : 0;
+
+  const cards = [
+    {
+      label: "最高得点",
+      value: `${playRecords.bestScore}点`,
+      detail: playRecords.bestScoreDate
+        ? `記録日：${playRecords.bestScoreDate}`
+        : "まだ記録がありません"
+    },
+    {
+      label: "累計プレイ回数",
+      value: `${playRecords.totalPlays}回`,
+      detail: "最後まで棚を完成させた回数"
+    },
+    {
+      label: "メイン目標の達成",
+      value: `${playRecords.mainAchieved}回`,
+      detail: `達成率 ${mainRate}%（${playRecords.mainAttempts}回挑戦）`
+    },
+    {
+      label: "サブ目標の達成",
+      value: `${playRecords.subAchieved}回`,
+      detail: `達成率 ${subRate}%（${playRecords.subAttempts}回挑戦）`
+    }
+  ];
+
+  content.innerHTML = "";
+
+  const grid = document.createElement("div");
+  grid.style.cssText = `
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:10px;
+  `;
+
+  cards.forEach((record) => {
+    const card = document.createElement("div");
+    card.style.cssText = `
+      min-width:0;
+      padding:14px 12px;
+      border:1px solid #e5dfd3;
+      border-radius:14px;
+      background:#f8f5ed;
+      overflow-wrap:anywhere;
+    `;
+
+    const label = document.createElement("p");
+    label.textContent = record.label;
+    label.style.cssText =
+      "margin:0 0 8px;color:#7c7b6d;font-size:12px;";
+
+    const value = document.createElement("strong");
+    value.textContent = record.value;
+    value.style.cssText =
+      "display:block;margin-bottom:8px;color:#52634b;font-size:24px;";
+
+    const detail = document.createElement("p");
+    detail.textContent = record.detail;
+    detail.style.cssText =
+      "margin:0;color:#827e72;font-size:11px;line-height:1.6;";
+
+    card.append(label, value, detail);
+    grid.appendChild(card);
+  });
+
+  content.appendChild(grid);
+}
+
+recordsButton.addEventListener("click", () => {
+  renderRecords();
+  recordsModal.hidden = false;
+  recordsModal.style.display = "flex";
+  recordsCard.querySelector("#records-close").focus();
+});
+
+recordsCard.querySelector("#records-close").addEventListener("click", () => {
+  recordsModal.hidden = true;
+  recordsModal.style.display = "none";
+  recordsButton.focus();
+});
+
+recordsModal.addEventListener("click", (event) => {
+  if (event.target === recordsModal) {
+    recordsModal.hidden = true;
+    recordsModal.style.display = "none";
+    recordsButton.focus();
+  }
+});
 
 // 結果画面の完成した棚・得点配分
 const resultShelfElement =
@@ -1168,6 +1444,8 @@ function renderStatus() {
   // その列に十分な空きがある場合だけ実行可能。
   const canPlace =
     selectedTiles.length > 0 &&
+    (difficultyMode !== "hard" ||
+      selectedTiles.length === MAX_SELECTION) &&
     selectedColumn !== null &&
     selectedTiles.length <=
       SHELF_ROWS - shelf[selectedColumn].length &&
@@ -1301,10 +1579,12 @@ function handleColumnClick(col) {
 // ========================================
 
 function placeSelectedTiles() {
-  if (
+if (
     gameOver ||
     selectedTiles.length === 0 ||
-    selectedColumn === null
+    selectedColumn === null ||
+    (difficultyMode === "hard" &&
+      selectedTiles.length !== MAX_SELECTION)
   ) {
     return;
   }
@@ -1411,6 +1691,9 @@ function checkGameOver() {
   // 最終得点
   const finalScore = baseScore + bonusScore;
 
+// プレイ記録を更新
+updatePlayRecords(finalScore);
+
   // 結果画面に完成した棚を表示
   renderResultShelf();
 
@@ -1437,6 +1720,50 @@ function checkGameOver() {
 
   renderAll();
 }
+
+// ========================================
+// 難易度を選択する
+// ========================================
+
+function showDifficultyScreen() {
+  resultModal.hidden = true;
+  difficultyScreen.hidden = false;
+}
+
+function chooseDifficulty(mode) {
+  difficultyMode = mode;
+  difficultyScreen.hidden = true;
+
+  // 遊び方の説明を難易度に合わせて変更
+  const boardHelpText =
+    boardElement.closest(".panel").querySelector(".help-text");
+
+  const rulesFirstItem =
+    document.querySelector(".rules-list li");
+
+  if (difficultyMode === "hard") {
+    boardHelpText.textContent =
+      "上級：必ず3個のタイルを選びます。同じ横列または縦列から選んでください。";
+
+    rulesFirstItem.textContent =
+      "共有ボードから取得可能なタイルを必ず3個選びます。";
+  } else {
+    boardHelpText.textContent =
+      "初級：1〜3個のタイルを選べます。同じ横列または縦列から選んでください。";
+
+    rulesFirstItem.textContent =
+      "共有ボードから取得可能なタイルを1〜3個選びます。";
+  }
+
+  startNewGame();
+}
+
+// 初級・上級のボタンを押したときの動作
+difficultyButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    chooseDifficulty(button.dataset.difficulty);
+  });
+});
 
 // ========================================
 // 16. 新しいゲームを開始
@@ -1477,7 +1804,9 @@ currentSubObjective =
   resultModal.hidden = true;
 
   messageElement.textContent =
-    "タイルを1〜3個選び、置きたい列を選択してください。";
+    difficultyMode === "hard"
+      ? "上級：タイルを必ず3個選び、置きたい列を選択してください。"
+      : "初級：タイルを1〜3個選び、置きたい列を選択してください。";
 
   renderAll();
 }
@@ -1498,19 +1827,19 @@ placeButton.addEventListener(
 
 restartButton.addEventListener(
   "click",
-  startNewGame
+  showDifficultyScreen
 );
 
 resultRestartButton.addEventListener(
   "click",
-  startNewGame
+  showDifficultyScreen
 );
 
 // ========================================
 // 18. ゲーム開始
 // ========================================
 
-startNewGame();
+showDifficultyScreen();
 
 /* ========================================
    結果画面全体を画像として保存
