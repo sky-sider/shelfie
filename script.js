@@ -1147,9 +1147,18 @@ function renderStatus() {
     0
   );
 
-  scoreElement.textContent = calculateScore();
   progressElement.textContent =
     `${placedCount} / ${SHELF_COLUMNS * SHELF_ROWS}`;
+  const progressBarElement =
+    document.getElementById("progress-bar");
+
+  if (progressBarElement) {
+    const completionRate =
+      (placedCount / (SHELF_COLUMNS * SHELF_ROWS)) * 100;
+
+    progressBarElement.style.width =
+      `${completionRate}%`;
+  }
   turnElement.textContent = turn;
 
   selectionCountElement.textContent =
@@ -1502,3 +1511,105 @@ resultRestartButton.addEventListener(
 // ========================================
 
 startNewGame();
+
+/* ========================================
+   結果画面全体を画像として保存
+======================================== */
+
+const saveResultImageButton =
+  document.getElementById("save-result-image");
+
+saveResultImageButton.addEventListener("click", async () => {
+  if (typeof html2canvas === "undefined") {
+    alert("画像保存機能を読み込めませんでした。インターネット接続を確認してください。");
+    return;
+  }
+
+  const resultCard =
+    document.querySelector("#result-modal .modal-card");
+
+  if (!resultCard) {
+    alert("結果画面が見つかりませんでした。");
+    return;
+  }
+
+  saveResultImageButton.disabled = true;
+  saveResultImageButton.textContent = "画像を作成中…";
+
+  // 元の表示設定を記録
+  const originalMaxHeight = resultCard.style.maxHeight;
+  const originalOverflowY = resultCard.style.overflowY;
+  const originalModalAlign =
+    document.querySelector("#result-modal").style.alignItems;
+  const originalScrollTop = resultCard.scrollTop;
+
+  // ボタンの元の表示状態を記録
+  const originalSaveButtonDisplay =
+    saveResultImageButton.style.display;
+
+  const originalRestartButtonDisplay =
+    resultRestartButton.style.display;
+
+  try {
+    // 一時的にスクロール制限を解除して全体を表示
+    resultCard.style.maxHeight = "none";
+    resultCard.style.overflowY = "visible";
+    // 画像にボタンを含めないように一時的に非表示
+    saveResultImageButton.style.display = "none";
+    resultRestartButton.style.display = "none";
+
+    const modal = document.querySelector("#result-modal");
+    modal.style.alignItems = "flex-start";
+
+    // レイアウト更新を反映
+    await new Promise(resolve => requestAnimationFrame(resolve));
+
+    const fullHeight = resultCard.scrollHeight;
+
+    const canvas = await html2canvas(resultCard, {
+      backgroundColor: "#fffdf8",
+      scale: 2,
+      useCORS: true,
+      width: resultCard.scrollWidth,
+      height: fullHeight,
+      windowWidth: Math.max(
+        document.documentElement.clientWidth,
+        resultCard.scrollWidth
+      ),
+      windowHeight: Math.max(
+        window.innerHeight,
+        fullHeight
+      ),
+      scrollX: 0,
+      scrollY: 0
+    });
+
+    const link = document.createElement("a");
+    link.download = "MY-SHELFIE-result.png";
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+
+  } catch (error) {
+    console.error("画像保存エラー:", error);
+    alert("画像を保存できませんでした。もう一度お試しください。");
+
+  } finally {
+    // 表示設定を元に戻す
+    // ボタンを元の表示状態に戻す
+    saveResultImageButton.style.display =
+      originalSaveButtonDisplay;
+
+    resultRestartButton.style.display =
+      originalRestartButtonDisplay;
+    resultCard.style.maxHeight = originalMaxHeight;
+    resultCard.style.overflowY = originalOverflowY;
+    resultCard.scrollTop = originalScrollTop;
+
+    document.querySelector("#result-modal").style.alignItems =
+      originalModalAlign;
+
+    saveResultImageButton.disabled = false;
+    saveResultImageButton.textContent = "結果を画像で保存";
+  }
+});
+
