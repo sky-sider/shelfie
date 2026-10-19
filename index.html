@@ -32,6 +32,44 @@
       </div>
     </section>
 
+    <!-- 目標カード -->
+    <section class="panel objectives-panel" aria-label="今回の目標">
+      <div class="section-heading">
+        <div>
+          <p class="section-label">YOUR OBJECTIVES</p>
+          <h2>今回の目標</h2>
+        </div>
+      </div>
+
+      <div class="objectives-grid">
+        <!-- メイン目標 -->
+        <article class="objective-card main-objective">
+          <p class="objective-label">MAIN OBJECTIVE</p>
+          <h3 id="main-objective-title">目標を準備中...</h3>
+          <p id="main-objective-description">
+            メイン目標の条件がここに表示されます。
+          </p>
+          <p class="objective-points">達成報酬 <strong>+15点</strong></p>
+          <p id="main-objective-status" class="objective-status">
+            ゲーム終了時に判定
+          </p>
+        </article>
+
+        <!-- サブ目標 -->
+        <article class="objective-card sub-objective">
+          <p class="objective-label">SUB OBJECTIVE</p>
+          <h3 id="sub-objective-title">目標を準備中...</h3>
+          <p id="sub-objective-description">
+            サブ目標の条件がここに表示されます。
+          </p>
+          <p class="objective-points">達成報酬 <strong>+6点</strong></p>
+          <p id="sub-objective-status" class="objective-status">
+            ゲーム終了時に判定
+          </p>
+        </article>
+      </div>
+    </section>
+
     <section class="panel">
 
   <!-- 上段：見出し -->
@@ -127,10 +165,38 @@
       <p class="section-label">GAME COMPLETE</p>
       <h2 id="result-title">棚が完成しました！</h2>
       <p>おめでとうございます。自分だけの棚ができました。</p>
-      <div class="result-score">
-        最終得点
-        <strong id="final-score">0</strong>
-      </div>
+            <!-- 完成した棚 -->
+      <section class="result-shelf-section">
+        <h3>完成した棚</h3>
+        <div id="result-shelf" class="result-shelf"
+             aria-label="完成した棚"></div>
+      </section>
+
+      <!-- 得点配分 -->
+      <section class="result-breakdown">
+        <h3>得点配分</h3>
+
+        <div class="result-score-row">
+          <span>基本得点</span>
+          <strong id="result-base-score">0点</strong>
+        </div>
+
+        <div class="result-score-row">
+          <span>メイン目標ボーナス</span>
+          <strong id="result-main-bonus">0点</strong>
+        </div>
+
+        <div class="result-score-row">
+          <span>サブ目標ボーナス</span>
+          <strong id="result-sub-bonus">0点</strong>
+        </div>
+
+        <div class="result-score">
+          最終得点
+          <strong id="final-score">0</strong>
+        </div>
+      </section>
+
       <button id="result-restart" class="button primary">
         もう一度遊ぶ
       </button>
