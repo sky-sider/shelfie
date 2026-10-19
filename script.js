@@ -39,13 +39,13 @@ const MAIN_OBJECTIVES = [
   {
     id: "M01",
     title: "本のコレクター",
-    description: "本を8個以上、本棚に置こう。",
+    description: "📚を8個以上、本棚に置こう。",
     check: (s) => countTiles(s, "book") >= 8
   },
   {
     id: "M02",
     title: "緑のある暮らし",
-    description: "植物を4列以上に置き、そのうち2列以上に各2個以上置こう。",
+    description: "🌿を4列以上に置き、そのうち2列以上に各2個以上置こう。",
     check: (s) => {
       const columns = s.filter(
         col => col.filter(t => t && t.id === "plant").length > 0
@@ -59,7 +59,7 @@ const MAIN_OBJECTIVES = [
   {
     id: "M03",
     title: "ネコのいる本棚",
-    description: "ネコを4段以上に置こう。",
+    description: "🐈を4段以上に置こう。",
     check: (s) => countRowsWith(s, "cat") >= 4
   },
   {
@@ -84,14 +84,14 @@ const MAIN_OBJECTIVES = [
   {
     id: "M07",
     title: "読書家の特等席",
-    description: "本を6個以上置き、3段以上に分散させよう。",
+    description: "📚を6個以上置き、3段以上に分散させよう。",
     check: (s) =>
       countTiles(s, "book") >= 6 && countRowsWith(s, "book") >= 3
   },
   {
     id: "M08",
     title: "ネコの王国",
-    description: "ネコを6個以上置き、3列以上に配置しよう。",
+    description: "🐈を6個以上置き、3列以上に配置しよう。",
     check: (s) =>
       countTiles(s, "cat") >= 6 &&
       s.filter(col => col.some(t => t && t.id === "cat")).length >= 3
@@ -121,7 +121,7 @@ const MAIN_OBJECTIVES = [
   {
     id: "M12",
     title: "小さな植物園",
-    description: "植物を6個以上置き、4段以上に配置しよう。",
+    description: "🌿を6個以上置き、4段以上に配置しよう。",
     check: (s) =>
       countTiles(s, "plant") >= 6 && countRowsWith(s, "plant") >= 4
   }
@@ -131,33 +131,33 @@ const SUB_OBJECTIVES = [
   {
     id: "S01",
     title: "グリーンを飾ろう",
-    description: "植物を5個以上置こう。",
+    description: "🌿を5個以上置こう。",
     check: (s) => countTiles(s, "plant") >= 5
   },
   {
     id: "S02",
     title: "アートギャラリー",
-    description: "額縁を3列以上に置こう。",
+    description: "🖼️を3列以上に置こう。",
     check: (s) =>
       s.filter(col => col.some(t => t && t.id === "picture")).length >= 3
   },
   {
     id: "S03",
     title: "遊びと読書",
-    description: "本とゲームをそれぞれ4個以上置こう。",
+    description: "📚と🎲をそれぞれ4個以上置こう。",
     check: (s) =>
       countTiles(s, "book") >= 4 && countTiles(s, "game") >= 4
   },
   {
     id: "S04",
     title: "栄光のトロフィー",
-    description: "トロフィーを3段以上に置こう。",
+    description: "🏆を3段以上に置こう。",
     check: (s) => countRowsWith(s, "trophy") >= 3
   },
   {
     id: "S05",
     title: "ネコと本のある暮らし",
-    description: "ネコを3個以上置き、そのうち2個以上を本に上下左右で隣接させよう。",
+    description: "🐈を3個以上置き、そのうち2個以上を📚に上下左右で隣接させよう。",
     check: (s) =>
       countCatNeighbors(s) >= 2 && countTiles(s, "cat") >= 3
   },
@@ -170,32 +170,32 @@ const SUB_OBJECTIVES = [
   {
     id: "S07",
     title: "ゲーム好き",
-    description: "ゲームを5個以上置こう。",
+    description: "🎲を5個以上置こう。",
     check: (s) => countTiles(s, "game") >= 5
   },
   {
     id: "S08",
     title: "小さな美術館",
-    description: "額縁を4個以上置こう。",
+    description: "🖼️を4個以上置こう。",
     check: (s) => countTiles(s, "picture") >= 4
   },
   {
     id: "S09",
     title: "幸運のお守り",
-    description: "トロフィーを4個以上置こう。",
+    description: "🏆を4個以上置こう。",
     check: (s) => countTiles(s, "trophy") >= 4
   },
   {
     id: "S10",
     title: "ネコのお昼寝",
-    description: "ネコを2段以上に置き、各段に2個以上置こう。",
+    description: "🐈を2段以上に置き、各段に2個以上置こう。",
     check: (s) =>
       countRowsWithAtLeast(s, "cat", 2) >= 2
   },
   {
     id: "S11",
     title: "読書と緑",
-    description: "本と植物をそれぞれ4個以上置こう。",
+    description: "📚と🌿をそれぞれ4個以上置こう。",
     check: (s) =>
       countTiles(s, "book") >= 4 && countTiles(s, "plant") >= 4
   },
@@ -267,6 +267,8 @@ let gameOver = false;
 
 // 選択中の難易度（easy：初級、hard：上級）
 let difficultyMode = null;
+let lockedScrollY = 0;
+
 
 /* ========================================
    プレイ記録の保存
@@ -277,8 +279,14 @@ const RECORDS_STORAGE_KEY = "myShelfieRecords_v1";
 function createEmptyRecords() {
   return {
     totalPlays: 0,
-    bestScore: 0,
-    bestScoreDate: null,
+
+    // 難易度別の最高得点
+    easyBestScore: 0,
+    easyBestScoreDate: null,
+    hardBestScore: 0,
+    hardBestScoreDate: null,
+
+    // 目標達成記録
     mainAttempts: 0,
     mainAchieved: 0,
     subAttempts: 0,
@@ -296,10 +304,25 @@ function loadRecords() {
 
     const parsed = JSON.parse(saved);
 
-    return {
+    const records = {
       ...createEmptyRecords(),
       ...parsed
     };
+
+    // 旧バージョンの最高得点を引き継ぐ。
+    // 難易度が記録されていない過去の得点は、
+    // 初級の記録として扱う。
+    if (
+      parsed.easyBestScore === undefined &&
+      parsed.bestScore !== undefined
+    ) {
+      records.easyBestScore = parsed.bestScore;
+      records.easyBestScoreDate =
+        parsed.bestScoreDate ?? null;
+    }
+
+    return records;
+
   } catch (error) {
     console.error("プレイ記録の読み込みに失敗しました:", error);
     return createEmptyRecords();
@@ -336,10 +359,23 @@ function updatePlayRecords(finalScore) {
     playRecords.subAchieved++;
   }
 
-  if (finalScore > playRecords.bestScore ||
-      playRecords.bestScoreDate === null) {
-    playRecords.bestScore = finalScore;
-    playRecords.bestScoreDate = today;
+  // 難易度ごとに最高得点を保存
+  if (difficultyMode === "hard") {
+    if (
+      playRecords.hardBestScoreDate === null ||
+      finalScore > playRecords.hardBestScore
+    ) {
+      playRecords.hardBestScore = finalScore;
+      playRecords.hardBestScoreDate = today;
+    }
+  } else {
+    if (
+      playRecords.easyBestScoreDate === null ||
+      finalScore > playRecords.easyBestScore
+    ) {
+      playRecords.easyBestScore = finalScore;
+      playRecords.easyBestScoreDate = today;
+    }
   }
 
   saveRecords();
@@ -491,28 +527,26 @@ function renderRecords() {
       )
     : 0;
 
+
   const cards = [
     {
-      label: "最高得点",
-      value: `${playRecords.bestScore}点`,
-      detail: playRecords.bestScoreDate
-        ? `記録日：${playRecords.bestScoreDate}`
+      label: "🌱 初級の最高得点",
+      value: `${playRecords.easyBestScore}点`,
+      detail: playRecords.easyBestScoreDate
+        ? `記録日：${playRecords.easyBestScoreDate}`
+        : "まだ記録がありません"
+    },
+    {
+      label: "⭐ 上級の最高得点",
+      value: `${playRecords.hardBestScore}点`,
+      detail: playRecords.hardBestScoreDate
+        ? `記録日：${playRecords.hardBestScoreDate}`
         : "まだ記録がありません"
     },
     {
       label: "累計プレイ回数",
       value: `${playRecords.totalPlays}回`,
       detail: "最後まで棚を完成させた回数"
-    },
-    {
-      label: "メイン目標の達成",
-      value: `${playRecords.mainAchieved}回`,
-      detail: `達成率 ${mainRate}%（${playRecords.mainAttempts}回挑戦）`
-    },
-    {
-      label: "サブ目標の達成",
-      value: `${playRecords.subAchieved}回`,
-      detail: `達成率 ${subRate}%（${playRecords.subAttempts}回挑戦）`
     }
   ];
 
@@ -1725,35 +1759,67 @@ updatePlayRecords(finalScore);
 // 難易度を選択する
 // ========================================
 
+// 難易度選択画面を表示して背景を固定する
 function showDifficultyScreen() {
   resultModal.hidden = true;
   difficultyScreen.hidden = false;
+
+  // 現在のスクロール位置を保存
+  lockedScrollY = window.scrollY;
+
+  // 背景を固定してスクロールを止める
+  document.body.style.position = "fixed";
+  document.body.style.top = `-${lockedScrollY}px`;
+  document.body.style.left = "0";
+  document.body.style.right = "0";
+  document.body.style.width = "100%";
 }
 
+// 難易度を決定してゲームを開始する
 function chooseDifficulty(mode) {
   difficultyMode = mode;
   difficultyScreen.hidden = true;
 
   // 遊び方の説明を難易度に合わせて変更
-  const boardHelpText =
-    boardElement.closest(".panel").querySelector(".help-text");
+  const boardPanel = boardElement.closest(".panel");
+  const boardHelpText = boardPanel
+    ? boardPanel.querySelector(".help-text")
+    : null;
 
   const rulesFirstItem =
     document.querySelector(".rules-list li");
 
   if (difficultyMode === "hard") {
-    boardHelpText.textContent =
-      "上級：必ず3個のタイルを選びます。同じ横列または縦列から選んでください。";
+    if (boardHelpText) {
+      boardHelpText.textContent =
+        "上級：必ず3個のタイルを選びます。同じ横列または縦列から選んでください。";
+    }
 
-    rulesFirstItem.textContent =
-      "共有ボードから取得可能なタイルを必ず3個選びます。";
+    if (rulesFirstItem) {
+      rulesFirstItem.textContent =
+        "共有ボードから取得可能なタイルを必ず3個選びます。";
+    }
   } else {
-    boardHelpText.textContent =
-      "初級：1〜3個のタイルを選べます。同じ横列または縦列から選んでください。";
+    if (boardHelpText) {
+      boardHelpText.textContent =
+        "初級：1〜3個のタイルを選べます。同じ横列または縦列から選んでください。";
+    }
 
-    rulesFirstItem.textContent =
-      "共有ボードから取得可能なタイルを1〜3個選びます。";
+    if (rulesFirstItem) {
+      rulesFirstItem.textContent =
+        "共有ボードから取得可能なタイルを1〜3個選びます。";
+    }
   }
+
+  // 背景の固定を解除
+  document.body.style.position = "";
+  document.body.style.top = "";
+  document.body.style.left = "";
+  document.body.style.right = "";
+  document.body.style.width = "";
+
+  // 元のスクロール位置に戻す
+  window.scrollTo(0, lockedScrollY);
 
   startNewGame();
 }
