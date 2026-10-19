@@ -62,30 +62,13 @@ let gameOver = false;
 const shelfElement = document.getElementById("shelf");
 const boardElement = document.getElementById("board");
 
- // 獲得するタイルの並べ替えパネルを作成
+// 獲得するタイルの並べ替えパネルを作成
 const selectedOrderElement = document.createElement("section");
 selectedOrderElement.id = "selected-order";
 selectedOrderElement.className = "selected-order";
 
-/* 棚と並べ替えパネルを横に並べる */
-const shelfLayout = document.createElement("div");
-shelfLayout.className = "shelf-layout";
-
-// 棚を新しいレイアウト用の箱に入れる
-shelfElement.parentNode.insertBefore(
-  shelfLayout,
-  shelfElement
-);
-
-// 棚と並べ替えパネルを横に並べる
-shelfLayout.appendChild(shelfElement);
-
-// 並べ替えパネルと配置ボタンをまとめる箱
-const orderAndButton = document.createElement("div");
-orderAndButton.className = "order-and-button";
-
-shelfLayout.appendChild(orderAndButton);
-orderAndButton.appendChild(selectedOrderElement);
+// HTMLに用意した並べ替えパネル用の箱を取得
+const orderAndButton = document.getElementById("order-and-button");
 
 const scoreElement = document.getElementById("score");
 const progressElement = document.getElementById("progress");
@@ -97,6 +80,10 @@ const selectionCountElement =
 const clearButton = document.getElementById("clear-button");
 const placeButton = document.getElementById("place-button");
 const restartButton = document.getElementById("restart-button");
+
+// 並べ替えパネルと配置ボタンを同じ箱に入れる
+orderAndButton.appendChild(selectedOrderElement);
+orderAndButton.appendChild(placeButton);
 
 // 「選んだタイルを置く」ボタンを並べ替えパネルの下へ移動
 orderAndButton.appendChild(placeButton);
@@ -499,7 +486,7 @@ function renderSelectedOrder() {
   const description = document.createElement("p");
   description.className = "selected-order-description";
   description.textContent =
-    "下にあるタイルほど、本棚の下段に置かれます。↑↓で順番を変更できます。";
+    "下にあるタイルほど、本棚の下段に置かれます。↑↓で順番を変更できます。\n順番を決めたら、タイルを置く列を選んで「選んだタイルを置く」ボタンを押してください。";
   selectedOrderElement.appendChild(description);
 
   const list = document.createElement("div");
