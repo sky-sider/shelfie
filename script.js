@@ -99,7 +99,7 @@ const MAIN_OBJECTIVES = [
   {
     id: "M09",
     title: "横並びコレクション",
-    description: "同じ種類のタイルが横に3個以上連続する段を2段作ろう。",
+    description: "同じ種類のタイルが横に3個以上連続する並びを2つ以上作ろう。",
     check: (s) => countHorizontalRuns(s, 3) >= 2
   },
   {
@@ -202,7 +202,7 @@ const SUB_OBJECTIVES = [
   {
     id: "S12",
     title: "お気に入りの一段",
-    description: "同じ種類のタイルを4個以上含む段を2段作ろう。",
+    description: "同じ種類のタイルが同じ段に4個以上ある段を2段以上作ろう（横に連続している必要はありません）。",
     check: (s) => countRowsWithRepeatedType(s, 4) >= 2
   },
   {
@@ -1555,7 +1555,7 @@ const allAccessible =
 
   if (!allAccessible) {
     messageElement.textContent =
-      "そのタイルは取得できません。左右どちらかが空いているタイルを選んでください。";
+      "そのタイルは取得できません。上下左右のいずれかが空いているタイルを選んでください。";
 
     return;
   }
