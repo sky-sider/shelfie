@@ -30,6 +30,216 @@ const GROUP_POINTS = {
   6: 8
 };
 
+
+/* ========================================
+   メイン目標・サブ目標
+======================================== */
+
+const MAIN_OBJECTIVES = [
+  {
+    id: "M01",
+    title: "本のコレクター",
+    description: "本を8個以上、本棚に置こう。",
+    check: (s) => countTiles(s, "book") >= 8
+  },
+  {
+    id: "M02",
+    title: "緑のある暮らし",
+    description: "植物を4列以上に置き、そのうち2列以上に各2個以上置こう。",
+    check: (s) => {
+      const columns = s.filter(
+        col => col.filter(t => t && t.id === "plant").length > 0
+      );
+      const richColumns = s.filter(
+        col => col.filter(t => t && t.id === "plant").length >= 2
+      );
+      return columns.length >= 4 && richColumns.length >= 2;
+    }
+  },
+  {
+    id: "M03",
+    title: "ネコのいる本棚",
+    description: "ネコを4段以上に置こう。",
+    check: (s) => countRowsWith(s, "cat") >= 4
+  },
+  {
+    id: "M04",
+    title: "充実のコレクション",
+    description: "6種類中5種類以上を、それぞれ3個以上集めよう。",
+    check: (s) =>
+      TILE_TYPES.filter(type => countTiles(s, type.id) >= 3).length >= 5
+  },
+  {
+    id: "M05",
+    title: "彩り豊かな棚",
+    description: "3種類以上のタイルがある段を4段以上作ろう。",
+    check: (s) => countColorfulRows(s, 3) >= 4
+  },
+  {
+    id: "M06",
+    title: "グループの達人",
+    description: "同じ種類のタイルが4個以上つながったグループを2つ作ろう。",
+    check: (s) => countLargeGroups(s, 4) >= 2
+  },
+  {
+    id: "M07",
+    title: "読書家の特等席",
+    description: "本を6個以上置き、3段以上に分散させよう。",
+    check: (s) =>
+      countTiles(s, "book") >= 6 && countRowsWith(s, "book") >= 3
+  },
+  {
+    id: "M08",
+    title: "ネコの王国",
+    description: "ネコを6個以上置き、3列以上に配置しよう。",
+    check: (s) =>
+      countTiles(s, "cat") >= 6 &&
+      s.filter(col => col.some(t => t && t.id === "cat")).length >= 3
+  },
+  {
+    id: "M09",
+    title: "横並びコレクション",
+    description: "同じ種類のタイルが横に3個以上連続する段を2段作ろう。",
+    check: (s) => countHorizontalRuns(s, 3) >= 2
+  },
+  {
+    id: "M10",
+    title: "バランスのよい本棚",
+    description: "6種類すべてを置き、それぞれを2段以上に分散させよう。",
+    check: (s) =>
+      TILE_TYPES.every(type => countTiles(s, type.id) >= 1) &&
+      TILE_TYPES.every(type => countRowsWith(s, type.id) >= 2)
+  },
+  {
+    id: "M11",
+    title: "整った暮らし",
+    description: "同じ種類のタイルを2個以上含む段を3段作り、さらに4種類以上のタイルを集めよう。",
+    check: (s) =>
+      countRowsWithRepeatedType(s, 2) >= 3 &&
+      TILE_TYPES.filter(type => countTiles(s, type.id) >= 1).length >= 4
+  },
+  {
+    id: "M12",
+    title: "小さな植物園",
+    description: "植物を6個以上置き、4段以上に配置しよう。",
+    check: (s) =>
+      countTiles(s, "plant") >= 6 && countRowsWith(s, "plant") >= 4
+  }
+];
+
+const SUB_OBJECTIVES = [
+  {
+    id: "S01",
+    title: "グリーンを飾ろう",
+    description: "植物を5個以上置こう。",
+    check: (s) => countTiles(s, "plant") >= 5
+  },
+  {
+    id: "S02",
+    title: "アートギャラリー",
+    description: "額縁を3列以上に置こう。",
+    check: (s) =>
+      s.filter(col => col.some(t => t && t.id === "picture")).length >= 3
+  },
+  {
+    id: "S03",
+    title: "遊びと読書",
+    description: "本とゲームをそれぞれ4個以上置こう。",
+    check: (s) =>
+      countTiles(s, "book") >= 4 && countTiles(s, "game") >= 4
+  },
+  {
+    id: "S04",
+    title: "栄光のトロフィー",
+    description: "トロフィーを3段以上に置こう。",
+    check: (s) => countRowsWith(s, "trophy") >= 3
+  },
+  {
+    id: "S05",
+    title: "ネコと本のある暮らし",
+    description: "ネコを3個以上置き、そのうち2個以上を本に上下左右で隣接させよう。",
+    check: (s) =>
+      countCatNeighbors(s) >= 2 && countTiles(s, "cat") >= 3
+  },
+  {
+    id: "S06",
+    title: "カラフルな本棚",
+    description: "3種類以上のタイルがある段を3段作ろう。",
+    check: (s) => countColorfulRows(s, 3) >= 3
+  },
+  {
+    id: "S07",
+    title: "ゲーム好き",
+    description: "ゲームを5個以上置こう。",
+    check: (s) => countTiles(s, "game") >= 5
+  },
+  {
+    id: "S08",
+    title: "小さな美術館",
+    description: "額縁を4個以上置こう。",
+    check: (s) => countTiles(s, "picture") >= 4
+  },
+  {
+    id: "S09",
+    title: "幸運のお守り",
+    description: "トロフィーを4個以上置こう。",
+    check: (s) => countTiles(s, "trophy") >= 4
+  },
+  {
+    id: "S10",
+    title: "ネコのお昼寝",
+    description: "ネコを2段以上に置き、各段に2個以上置こう。",
+    check: (s) =>
+      countRowsWithAtLeast(s, "cat", 2) >= 2
+  },
+  {
+    id: "S11",
+    title: "読書と緑",
+    description: "本と植物をそれぞれ4個以上置こう。",
+    check: (s) =>
+      countTiles(s, "book") >= 4 && countTiles(s, "plant") >= 4
+  },
+  {
+    id: "S12",
+    title: "お気に入りの一段",
+    description: "同じ種類のタイルを4個以上含む段を2段作ろう。",
+    check: (s) => countRowsWithRepeatedType(s, 4) >= 2
+  },
+  {
+    id: "S13",
+    title: "小さなミックス",
+    description: "1段に4種類以上のタイルを配置しよう。",
+    check: (s) => countColorfulRows(s, 4) >= 1
+  },
+  {
+    id: "S14",
+    title: "上下のつながり",
+    description: "同じ種類のタイルが上下に隣接する組を3組作ろう。",
+    check: (s) => countVerticalPairs(s) >= 3
+  },
+  {
+    id: "S15",
+    title: "横並びコレクション",
+    description: "同じ種類のタイルが左右に隣接する組を3組作ろう。",
+    check: (s) => countHorizontalPairs(s) >= 3
+  },
+  {
+    id: "S16",
+    title: "バランス上手",
+    description: "6種類のタイルをそれぞれ2個以上置こう。",
+    check: (s) =>
+      TILE_TYPES.every(type => countTiles(s, type.id) >= 2)
+  }
+];
+
+// 現在のゲームで選ばれた目標
+let currentMainObjective = null;
+let currentSubObjective = null;
+
+// ゲーム終了時の達成結果
+let mainObjectiveAchieved = false;
+let subObjectiveAchieved = false;
+
 // ========================================
 // 2. ゲームの状態
 // ========================================
@@ -92,6 +302,33 @@ const resultModal = document.getElementById("result-modal");
 const finalScoreElement = document.getElementById("final-score");
 const resultRestartButton =
   document.getElementById("result-restart");
+
+// 結果画面の完成した棚・得点配分
+const resultShelfElement =
+  document.getElementById("result-shelf");
+
+const resultBaseScoreElement =
+  document.getElementById("result-base-score");
+
+const resultMainBonusElement =
+  document.getElementById("result-main-bonus");
+
+const resultSubBonusElement =
+  document.getElementById("result-sub-bonus");
+
+const mainObjectiveTitle =
+  document.getElementById("main-objective-title");
+const mainObjectiveDescription =
+  document.getElementById("main-objective-description");
+const mainObjectiveStatus =
+  document.getElementById("main-objective-status");
+
+const subObjectiveTitle =
+  document.getElementById("sub-objective-title");
+const subObjectiveDescription =
+  document.getElementById("sub-objective-description");
+const subObjectiveStatus =
+  document.getElementById("sub-objective-status");
 
 // ========================================
 // 4. 共通の便利な関数
@@ -364,6 +601,40 @@ function renderShelf() {
 }
 
 // ========================================
+// 結果画面に完成した棚を描画
+// ========================================
+
+function renderResultShelf() {
+  resultShelfElement.innerHTML = "";
+
+  // 棚を左から右へ描画
+  for (let col = 0; col < SHELF_COLUMNS; col++) {
+    const column = document.createElement("div");
+    column.className = "result-shelf-column";
+
+    // 上段から下段の順に表示
+    for (let row = SHELF_ROWS - 1; row >= 0; row--) {
+      const cell = document.createElement("div");
+      cell.className = "result-shelf-cell";
+
+      const tile = shelf[col][row];
+
+      if (tile) {
+        cell.classList.add("filled");
+        cell.textContent = tile.emoji;
+        cell.title = tile.name;
+      } else {
+        cell.classList.add("empty");
+      }
+
+      column.appendChild(cell);
+    }
+
+    resultShelfElement.appendChild(column);
+  }
+}
+
+// ========================================
 // 8. 得点計算
 // ========================================
 
@@ -460,6 +731,262 @@ function calculateScore() {
   return totalScore;
 }
 
+
+/* ========================================
+   目標達成の判定用関数
+======================================== */
+
+// 指定した種類のタイルの合計数
+function countTiles(s, typeId) {
+  return s.reduce(
+    (total, column) =>
+      total + column.filter(
+        tile => tile && tile.id === typeId
+      ).length,
+    0
+  );
+}
+
+// 指定した種類が1個以上ある段の数
+function countRowsWith(s, typeId) {
+  let count = 0;
+
+  for (let row = 0; row < SHELF_ROWS; row++) {
+    const hasTile = s.some(
+      column => column[row] && column[row].id === typeId
+    );
+
+    if (hasTile) count++;
+  }
+
+  return count;
+}
+
+// 指定した種類数以上のタイルがある段の数
+function countColorfulRows(s, minimumTypes) {
+  let count = 0;
+
+  for (let row = 0; row < SHELF_ROWS; row++) {
+    const types = new Set();
+
+    for (let col = 0; col < SHELF_COLUMNS; col++) {
+      const tile = s[col][row];
+
+      if (tile) types.add(tile.id);
+    }
+
+    if (types.size >= minimumTypes) count++;
+  }
+
+  return count;
+}
+
+// 指定個数以上でつながる同種グループの数
+function countLargeGroups(s, minimumSize) {
+  const visited = new Set();
+  let largeGroups = 0;
+
+  function indexOf(col, row) {
+    return row * SHELF_COLUMNS + col;
+  }
+
+  function tileAt(index) {
+    const col = index % SHELF_COLUMNS;
+    const row = Math.floor(index / SHELF_COLUMNS);
+    return s[col][row] || null;
+  }
+
+  for (let start = 0; start < SHELF_COLUMNS * SHELF_ROWS; start++) {
+    const startTile = tileAt(start);
+
+    if (!startTile || visited.has(start)) continue;
+
+    const stack = [start];
+    const group = [];
+
+    visited.add(start);
+
+    while (stack.length > 0) {
+      const current = stack.pop();
+      group.push(current);
+
+      const col = current % SHELF_COLUMNS;
+      const row = Math.floor(current / SHELF_COLUMNS);
+
+      const neighbors = [
+        [col - 1, row],
+        [col + 1, row],
+        [col, row - 1],
+        [col, row + 1]
+      ];
+
+      for (const [nextCol, nextRow] of neighbors) {
+        if (
+          nextCol < 0 || nextCol >= SHELF_COLUMNS ||
+          nextRow < 0 || nextRow >= SHELF_ROWS
+        ) continue;
+
+        const next = indexOf(nextCol, nextRow);
+        const nextTile = tileAt(next);
+
+        if (
+          !visited.has(next) &&
+          nextTile &&
+          nextTile.id === startTile.id
+        ) {
+          visited.add(next);
+          stack.push(next);
+        }
+      }
+    }
+
+    if (group.length >= minimumSize) {
+      largeGroups++;
+    }
+  }
+
+  return largeGroups;
+}
+
+// 本に上下左右で隣接しているネコの数
+function countCatNeighbors(s) {
+  let count = 0;
+
+  for (let col = 0; col < SHELF_COLUMNS; col++) {
+    for (let row = 0; row < SHELF_ROWS; row++) {
+      const tile = s[col][row];
+
+      if (!tile || tile.id !== "cat") continue;
+
+      const neighbors = [
+        [col - 1, row],
+        [col + 1, row],
+        [col, row - 1],
+        [col, row + 1]
+      ];
+
+      const touchesBook = neighbors.some(
+        ([c, r]) =>
+          c >= 0 && c < SHELF_COLUMNS &&
+          r >= 0 && r < SHELF_ROWS &&
+          s[c][r] && s[c][r].id === "book"
+      );
+
+      if (touchesBook) count++;
+    }
+  }
+
+  return count;
+}
+
+function countHorizontalRuns(s, minimumLength) {
+  let count = 0;
+
+  for (let row = 0; row < SHELF_ROWS; row++) {
+    let currentType = null;
+    let runLength = 0;
+
+    for (let col = 0; col < SHELF_COLUMNS; col++) {
+      const tile = s[col][row];
+
+      if (tile && tile.id === currentType) {
+        runLength++;
+      } else {
+        if (runLength >= minimumLength) {
+          count++;
+        }
+
+        currentType = tile ? tile.id : null;
+        runLength = tile ? 1 : 0;
+      }
+    }
+
+    if (runLength >= minimumLength) {
+      count++;
+    }
+  }
+
+  return count;
+}
+
+function countHorizontalPairs(s) {
+  let count = 0;
+
+  for (let row = 0; row < SHELF_ROWS; row++) {
+    for (let col = 0; col < SHELF_COLUMNS - 1; col++) {
+      const tile = s[col][row];
+      const right = s[col + 1][row];
+
+      if (tile && right && tile.id === right.id) {
+        count++;
+      }
+    }
+  }
+
+  return count;
+}
+
+function countVerticalPairs(s) {
+  let count = 0;
+
+  for (let col = 0; col < SHELF_COLUMNS; col++) {
+    for (let row = 0; row < SHELF_ROWS - 1; row++) {
+      const tile = s[col][row];
+      const below = s[col][row + 1];
+
+      if (tile && below && tile.id === below.id) {
+        count++;
+      }
+    }
+  }
+
+  return count;
+}
+
+function countRowsWithRepeatedType(s, minimumCount) {
+  let count = 0;
+
+  for (let row = 0; row < SHELF_ROWS; row++) {
+    const typeCounts = {};
+
+    for (let col = 0; col < SHELF_COLUMNS; col++) {
+      const tile = s[col][row];
+
+      if (tile) {
+        typeCounts[tile.id] = (typeCounts[tile.id] || 0) + 1;
+      }
+    }
+
+    if (Object.values(typeCounts).some(total => total >= minimumCount)) {
+      count++;
+    }
+  }
+
+  return count;
+}
+
+function countRowsWithAtLeast(s, typeId, minimumCount) {
+  let count = 0;
+
+  for (let row = 0; row < SHELF_ROWS; row++) {
+    let rowCount = 0;
+
+    for (let col = 0; col < SHELF_COLUMNS; col++) {
+      const tile = s[col][row];
+
+      if (tile && tile.id === typeId) {
+        rowCount++;
+      }
+    }
+
+    if (rowCount >= minimumCount) {
+      count++;
+    }
+  }
+
+  return count;
+}
+
 // ========================================
 // 9. 状況表示の更新
 // ========================================
@@ -480,7 +1007,7 @@ function renderSelectedOrder() {
   selectedOrderElement.hidden = false;
 
   const title = document.createElement("h3");
-  title.textContent = "獲得するタイルの並び順";
+  title.textContent = "獲得したタイルを棚に入れる";
   selectedOrderElement.appendChild(title);
 
   const description = document.createElement("p");
@@ -570,6 +1097,50 @@ function renderSelectedOrder() {
   selectedOrderElement.appendChild(list);
 }
 
+function renderObjectives() {
+  if (!currentMainObjective || !currentSubObjective) {
+    return;
+  }
+
+  mainObjectiveTitle.textContent =
+    currentMainObjective.title;
+  mainObjectiveDescription.textContent =
+    currentMainObjective.description;
+
+  subObjectiveTitle.textContent =
+    currentSubObjective.title;
+  subObjectiveDescription.textContent =
+    currentSubObjective.description;
+
+  if (gameOver) {
+    mainObjectiveStatus.textContent =
+      mainObjectiveAchieved
+        ? "達成！ +15点"
+        : "未達成";
+
+    subObjectiveStatus.textContent =
+      subObjectiveAchieved
+        ? "達成！ +6点"
+        : "未達成";
+
+    mainObjectiveStatus.classList.toggle(
+      "achieved",
+      mainObjectiveAchieved
+    );
+
+    subObjectiveStatus.classList.toggle(
+      "achieved",
+      subObjectiveAchieved
+    );
+  } else {
+    mainObjectiveStatus.textContent = "挑戦中";
+    subObjectiveStatus.textContent = "挑戦中";
+
+    mainObjectiveStatus.classList.remove("achieved");
+    subObjectiveStatus.classList.remove("achieved");
+  }
+}
+
 function renderStatus() {
   const placedCount = shelf.reduce(
     (sum, column) => sum + column.length,
@@ -605,6 +1176,7 @@ function renderAll() {
   renderShelf();
   renderSelectedOrder();
   renderStatus();
+  renderObjectives();
 }
 
 // ========================================
@@ -808,15 +1380,51 @@ function checkGameOver() {
     return;
   }
 
+  if (gameOver) return;
+
   gameOver = true;
 
-  const finalScore = calculateScore();
+  // メイン目標とサブ目標の達成判定
+  mainObjectiveAchieved =
+    currentMainObjective.check(shelf);
+
+  subObjectiveAchieved =
+    currentSubObjective.check(shelf);
+
+  // 通常得点
+  const baseScore = calculateScore();
+
+  // 目標ボーナス
+  const bonusScore =
+    (mainObjectiveAchieved ? 15 : 0) +
+    (subObjectiveAchieved ? 6 : 0);
+
+  // 最終得点
+  const finalScore = baseScore + bonusScore;
+
+  // 結果画面に完成した棚を表示
+  renderResultShelf();
+
+  // 得点の内訳を表示
+  resultBaseScoreElement.textContent =
+    `${baseScore}点`;
+
+  resultMainBonusElement.textContent =
+    `${mainObjectiveAchieved ? 15 : 0}点`;
+
+  resultSubBonusElement.textContent =
+    `${subObjectiveAchieved ? 6 : 0}点`;
 
   finalScoreElement.textContent = finalScore;
   resultModal.hidden = false;
 
+  const bonusMessage =
+    bonusScore > 0
+      ? ` 目標ボーナス +${bonusScore}点！`
+      : " 目標ボーナスはありませんでした。";
+
   messageElement.textContent =
-    "ゲーム終了！ 棚が完成しました。";
+    `ゲーム終了！ 棚が完成しました。${bonusMessage}`;
 
   renderAll();
 }
@@ -840,6 +1448,22 @@ function startNewGame() {
   selectedColumn = null;
   turn = 1;
   gameOver = false;
+
+  // メイン目標をランダムに選ぶ
+  currentMainObjective =
+    MAIN_OBJECTIVES[
+      Math.floor(Math.random() * MAIN_OBJECTIVES.length)
+    ];
+
+// サブ目標をランダムに選ぶ
+currentSubObjective =
+  SUB_OBJECTIVES[
+    Math.floor(Math.random() * SUB_OBJECTIVES.length)
+  ];
+
+  // 目標の達成状態をリセット
+  mainObjectiveAchieved = false;
+  subObjectiveAchieved = false;
 
   resultModal.hidden = true;
 
