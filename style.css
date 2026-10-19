@@ -966,3 +966,36 @@ h1 {
 .difficulty-screen[hidden] {
   display: none;
 }
+
+/* 難易度選択画面の表示中は背景をスクロールさせない */
+body.difficulty-open {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+}
+
+/* 難易度選択画面では背景へのスクロール操作を防ぐ */
+.difficulty-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  touch-action: none;
+  overscroll-behavior: none;
+}
+
+/* 非表示時は画面を覆わない */
+.difficulty-screen[hidden] {
+  display: none !important;
+}
+
+.difficulty-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  touch-action: none;
+  overscroll-behavior: none;
+}
+
+.difficulty-screen[hidden] {
+  display: none !important;
+}
