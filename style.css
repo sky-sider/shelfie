@@ -514,3 +514,54 @@ h1 {
 .selected-order-controls button:not(:disabled):active {
   transform: scale(0.95);
 }
+
+/* あなたの棚と並べ替えパネルを横並びにする */
+.shelf-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(220px, 0.8fr);
+  gap: 16px;
+  align-items: start;
+  width: 100%;
+  margin-top: 12px;
+}
+
+/* 棚が横幅からはみ出さないようにする */
+.shelf-layout #shelf {
+  min-width: 0;
+}
+
+/* 並べ替えパネルの余白を調整 */
+.shelf-layout .selected-order {
+  margin-top: 0;
+  min-width: 0;
+}
+
+/* スマホでは上下に並べる */
+@media (max-width: 600px) {
+  .shelf-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* 並べ替えパネルと配置ボタンをまとめる */
+.order-and-button {
+  min-width: 0;
+}
+
+.order-and-button .selected-order {
+  margin-top: 0;
+}
+
+/* 配置ボタンを並べ替えパネルの下に置く */
+.order-and-button #place-button {
+  display: block;
+  width: 100%;
+  margin-top: 14px;
+}
+
+/* スマホで横幅からはみ出さないようにする */
+@media (max-width: 600px) {
+  .shelf-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
