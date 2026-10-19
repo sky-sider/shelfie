@@ -2008,3 +2008,74 @@ saveResultImageButton.addEventListener("click", async () => {
   }
 });
 
+
+/* ========================================
+   説明書の表示・操作
+======================================== */
+
+const manualModal = document.getElementById("manual-modal");
+const manualOpenButton = document.getElementById("manual-open-button");
+const manualCloseButton = document.getElementById("manual-close-button");
+const manualTabs = document.querySelectorAll(".manual-tab");
+const manualPages = document.querySelectorAll(".manual-page");
+
+// 説明書を開く
+if (manualModal && manualOpenButton) {
+  manualOpenButton.addEventListener("click", () => {
+    manualModal.hidden = false;
+  });
+}
+
+// 説明書を閉じる
+if (manualModal && manualCloseButton) {
+  manualCloseButton.addEventListener("click", () => {
+    manualModal.hidden = true;
+
+    if (manualOpenButton) {
+      manualOpenButton.focus();
+    }
+  });
+}
+
+// 説明書の背景部分をクリックして閉じる
+if (manualModal) {
+  manualModal.addEventListener("click", (event) => {
+    if (event.target === manualModal) {
+      manualModal.hidden = true;
+
+      if (manualOpenButton) {
+        manualOpenButton.focus();
+      }
+    }
+  });
+}
+
+// 説明書のタブを切り替える
+manualTabs.forEach((tab) => {
+  tab.addEventListener("click", () => {
+    const target = tab.dataset.manualTab;
+
+    manualTabs.forEach((otherTab) => {
+      otherTab.classList.toggle("active", otherTab === tab);
+    });
+
+    manualPages.forEach((page) => {
+      const isTarget = page.dataset.manualPage === target;
+
+      page.hidden = !isTarget;
+      page.classList.toggle("active", isTarget);
+    });
+  });
+});
+
+// Escapeキーで説明書を閉じる
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && manualModal && !manualModal.hidden) {
+    manualModal.hidden = true;
+
+    if (manualOpenButton) {
+      manualOpenButton.focus();
+    }
+  }
+});
+
