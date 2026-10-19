@@ -5,31 +5,81 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f5efe5">
-  <title>MY SHELFIE | SOLO PUZZLE</title>
+  <title>MY LITTLE SHELF | A cozy little shelf puzzle</title>
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="script.js" defer></script>
 </head>
 <body>
   <main class="game">
     <header class="game-header">
-      <p class="eyebrow">MY SHELFIE / SOLO PUZZLE</p>
-      <h1>My Shelfie</h1>
+      <p class="eyebrow">MY LITTLE SHELF / A cozy little shelf puzzle</p>
+      <h1>My Little Shelf</h1>
       <p class="subtitle">自分だけの棚を完成させよう</p>
     </header>
 
-    <section class="status-panel" aria-label="ゲーム状況">
-      <div class="status-item">
-        <span>現在の得点</span>
-        <strong id="score">0</strong>
+<section class="status-panel" aria-label="ゲーム状況">
+  <div class="status-item">
+    <span class="status-label">SHELF PROGRESS</span>
+    <span class="status-name">棚の完成度</span>
+    <strong id="progress">0 / 30</strong>
+    <div class="progress-track">
+      <div id="progress-bar" class="progress-bar"></div>
+    </div>
+  </div>
+
+  <div class="status-item">
+    <span class="status-label">CURRENT TURN</span>
+    <span class="status-name">ターン</span>
+    <strong id="turn">1</strong>
+    <span class="status-unit">TURN</span>
+  </div>
+</section>
+
+    <!-- 基本得点の説明 -->
+    <section class="panel scoring-panel" aria-label="基本得点のルール">
+      <div class="section-heading">
+        <div>
+          <p class="section-label">BASIC SCORING</p>
+          <h2>基本得点</h2>
+        </div>
       </div>
-      <div class="status-item">
-        <span>棚の完成度</span>
-        <strong id="progress">0 / 30</strong>
+
+      <p class="help-text">
+        同じ種類のタイルが上下左右につながるとグループになります。
+        3個以上つながったグループが得点対象です。
+      </p>
+
+      <div class="scoring-list">
+        <div class="scoring-item">
+          <span class="scoring-tiles">📚 📚 📚</span>
+          <span>3個つながる</span>
+          <strong>2点</strong>
+        </div>
+
+        <div class="scoring-item">
+          <span class="scoring-tiles">🌿 🌿 🌿 🌿</span>
+          <span>4個つながる</span>
+          <strong>3点</strong>
+        </div>
+
+        <div class="scoring-item">
+          <span class="scoring-tiles">🐈 🐈 🐈 🐈 🐈</span>
+          <span>5個つながる</span>
+          <strong>5点</strong>
+        </div>
+
+        <div class="scoring-item">
+          <span class="scoring-tiles">🎲 🎲 🎲 🎲 🎲 🎲</span>
+          <span>6個以上つながる</span>
+          <strong>8点</strong>
+        </div>
       </div>
-      <div class="status-item">
-        <span>ターン</span>
-        <strong id="turn">1</strong>
-      </div>
+
+      <p class="small-note">
+        ※ グループごとに得点します。2個以下のグループは0点です。
+        斜めの接触はつながりに含みません。
+      </p>
     </section>
 
     <!-- 目標カード -->
@@ -69,6 +119,8 @@
         </article>
       </div>
     </section>
+
+
 
     <section class="panel">
 
@@ -141,13 +193,12 @@
       <ol class="rules-list">
         <li>共有ボードから取得可能なタイルを1〜3個選びます。</li>
         <li>選んだタイルは、同じ横列または縦列に連続している必要があります。</li>
-        <li>棚の置きたい列を選び、選んだタイルを下から配置します。</li>
+        <li>棚の置きたい列を選び、選んだタイルを配置します。</li>
         <li>ターン終了時に、共有ボードの空きマスを補充します。</li>
         <li>同じ種類のタイルが3個以上つながると得点になります。</li>
         <li>棚が30マス埋まるとゲーム終了です。</li>
       </ol>
       <p class="small-note">
-        初期版では、個人目標・共通目標・公式の全採点条件は未実装です。
       </p>
     </section>
 
@@ -155,7 +206,7 @@
       <button id="restart-button" class="button secondary">
         新しいゲームを始める
       </button>
-      <p>MY SHELFIE · SOLO PUZZLE</p>
+      <p>MY LITTLE SHELF · A cozy little shelf puzzle</p>
     </footer>
   </main>
 
@@ -196,6 +247,10 @@
           <strong id="final-score">0</strong>
         </div>
       </section>
+
+<button id="save-result-image" class="button secondary">
+  結果を画像で保存
+</button>
 
       <button id="result-restart" class="button primary">
         もう一度遊ぶ
