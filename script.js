@@ -67,10 +67,25 @@ const selectedOrderElement = document.createElement("section");
 selectedOrderElement.id = "selected-order";
 selectedOrderElement.className = "selected-order";
 
-boardElement.insertAdjacentElement(
-  "afterend",
-  selectedOrderElement
+/* 棚と並べ替えパネルを横に並べる */
+const shelfLayout = document.createElement("div");
+shelfLayout.className = "shelf-layout";
+
+// 棚を新しいレイアウト用の箱に入れる
+shelfElement.parentNode.insertBefore(
+  shelfLayout,
+  shelfElement
 );
+
+// 棚と並べ替えパネルを横に並べる
+shelfLayout.appendChild(shelfElement);
+
+// 並べ替えパネルと配置ボタンをまとめる箱
+const orderAndButton = document.createElement("div");
+orderAndButton.className = "order-and-button";
+
+shelfLayout.appendChild(orderAndButton);
+orderAndButton.appendChild(selectedOrderElement);
 
 const scoreElement = document.getElementById("score");
 const progressElement = document.getElementById("progress");
@@ -82,6 +97,9 @@ const selectionCountElement =
 const clearButton = document.getElementById("clear-button");
 const placeButton = document.getElementById("place-button");
 const restartButton = document.getElementById("restart-button");
+
+// 「選んだタイルを置く」ボタンを並べ替えパネルの下へ移動
+orderAndButton.appendChild(placeButton);
 
 const resultModal = document.getElementById("result-modal");
 const finalScoreElement = document.getElementById("final-score");
