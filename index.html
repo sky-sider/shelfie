@@ -12,6 +12,43 @@
 </head>
 <body>
   <main class="game">
+
+    <!-- 難易度選択画面 -->
+    <section id="difficulty-screen" class="difficulty-screen">
+      <div class="difficulty-card">
+        <p class="section-label">CHOOSE YOUR MODE</p>
+        <h2>どんな棚を作りますか？</h2>
+        <p class="difficulty-description">
+          好きな難易度を選んで、自分だけの棚を作りましょう。
+        </p>
+
+        <div class="difficulty-options">
+          <button
+            type="button"
+            class="difficulty-button"
+            data-difficulty="easy"
+          >
+            <span class="difficulty-name">🌷 初級</span>
+            <span class="difficulty-detail">
+              1〜3個のタイルを自由に選べます。
+            </span>
+          </button>
+
+          <button
+            type="button"
+            class="difficulty-button"
+            data-difficulty="hard"
+          >
+            <span class="difficulty-name">🪴 上級</span>
+            <span class="difficulty-detail">
+              毎ターン、必ず3個のタイルを選びます。
+            </span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+
     <header class="game-header">
       <p class="eyebrow">MY LITTLE SHELF / A cozy little shelf puzzle</p>
       <h1>My Little Shelf</h1>
