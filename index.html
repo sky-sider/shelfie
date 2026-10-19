@@ -1,0 +1,127 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5efe5">
+  <title>MY SHELFIE | SOLO PUZZLE</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <main class="game">
+    <header class="game-header">
+      <p class="eyebrow">MY SHELFIE / SOLO PUZZLE</p>
+      <h1>My Shelfie</h1>
+      <p class="subtitle">自分だけの棚を完成させよう</p>
+    </header>
+
+    <section class="status-panel" aria-label="ゲーム状況">
+      <div class="status-item">
+        <span>現在の得点</span>
+        <strong id="score">0</strong>
+      </div>
+      <div class="status-item">
+        <span>棚の完成度</span>
+        <strong id="progress">0 / 30</strong>
+      </div>
+      <div class="status-item">
+        <span>ターン</span>
+        <strong id="turn">1</strong>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="section-heading">
+        <div>
+          <p class="section-label">YOUR COLLECTION</p>
+          <h2>あなたの棚</h2>
+        </div>
+        <span class="small-note">下から積み上げます</span>
+      </div>
+
+      <div id="shelf" class="shelf" aria-label="5列6段の棚"></div>
+
+      <p class="help-text">
+        タイルを置く列を選んでください。
+        選んだ列の一番下の空きマスから配置します。
+      </p>
+    </section>
+
+    <section class="panel">
+      <div class="section-heading">
+        <div>
+          <p class="section-label">SHARED BOARD</p>
+          <h2>アイテムを選ぶ</h2>
+        </div>
+        <span id="selection-count" class="selection-count">0 / 3 個</span>
+      </div>
+
+      <p class="help-text">
+        取得できるタイルをタップしてください。
+        1〜3個を同じ横列または縦列から選べます。
+      </p>
+
+      <div id="board" class="board" aria-label="共有ボード"></div>
+
+      <div class="action-area">
+        <p id="message" class="message" role="status" aria-live="polite">
+          タイルを選んでゲームを始めましょう。
+        </p>
+        <div class="action-buttons">
+          <button id="clear-button" class="button secondary">
+            選択を解除
+          </button>
+          <button id="place-button" class="button primary" disabled>
+            選んだタイルを置く
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="section-heading">
+        <div>
+          <p class="section-label">HOW TO PLAY</p>
+          <h2>遊び方</h2>
+        </div>
+      </div>
+      <ol class="rules-list">
+        <li>共有ボードから取得可能なタイルを1〜3個選びます。</li>
+        <li>選んだタイルは、同じ横列または縦列に連続している必要があります。</li>
+        <li>棚の置きたい列を選び、選んだタイルを下から配置します。</li>
+        <li>ターン終了時に、共有ボードの空きマスを補充します。</li>
+        <li>同じ種類のタイルが3個以上つながると得点になります。</li>
+        <li>棚が30マス埋まるとゲーム終了です。</li>
+      </ol>
+      <p class="small-note">
+        初期版では、個人目標・共通目標・公式の全採点条件は未実装です。
+      </p>
+    </section>
+
+    <footer class="footer">
+      <button id="restart-button" class="button secondary">
+        新しいゲームを始める
+      </button>
+      <p>MY SHELFIE · SOLO PUZZLE</p>
+    </footer>
+  </main>
+
+  <div id="result-modal" class="modal" hidden>
+    <div class="modal-card" role="dialog" aria-modal="true"
+         aria-labelledby="result-title">
+      <p class="section-label">GAME COMPLETE</p>
+      <h2 id="result-title">棚が完成しました！</h2>
+      <p>おめでとうございます。自分だけの棚ができました。</p>
+      <div class="result-score">
+        最終得点
+        <strong id="final-score">0</strong>
+      </div>
+      <button id="result-restart" class="button primary">
+        もう一度遊ぶ
+      </button>
+    </div>
+  </div>
+</body>
+</html>
