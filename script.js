@@ -1980,7 +1980,7 @@ saveResultImageButton.addEventListener("click", async () => {
     });
 
     const link = document.createElement("a");
-    link.download = "MY-SHELFIE-result.png";
+    link.download = "MY-SHELF-result.png";
     link.href = canvas.toDataURL("image/png");
     link.click();
 
