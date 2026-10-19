@@ -999,3 +999,298 @@ body.difficulty-open {
 .difficulty-screen[hidden] {
   display: none !important;
 }
+
+
+/* =========================
+   ゲーム説明書
+========================= */
+
+/* 説明書を開くためのパネル */
+.manual-launcher {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.manual-launcher h2 {
+  margin: 4px 0 0;
+  font-size: 1.2rem;
+}
+
+.manual-launcher .help-text {
+  margin-top: 6px;
+}
+
+#manual-open-button {
+  flex-shrink: 0;
+}
+
+/* 説明書のモーダル */
+.manual-modal-card {
+  width: min(100%, 680px);
+  max-height: calc(100dvh - 32px);
+  padding: 0;
+  overflow: hidden;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  margin: auto 0;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+}
+
+/* 説明書の上部 */
+.manual-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 20px 16px;
+  background: #fffaf0;
+  border-bottom: 1px solid var(--border);
+}
+
+.manual-header h2 {
+  margin: 4px 0 0;
+  font-size: 1.25rem;
+}
+
+.manual-header .button {
+  width: auto;
+  min-height: 40px;
+  padding: 8px 12px;
+  white-space: nowrap;
+}
+
+/* タブ */
+.manual-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  padding: 12px 16px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+}
+
+.manual-tab {
+  min-width: 0;
+  min-height: 42px;
+  padding: 8px 4px;
+  color: var(--muted);
+  background: #f4eee3;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition:
+    color 0.15s,
+    background 0.15s,
+    border-color 0.15s;
+}
+
+.manual-tab:hover {
+  background: #e9efe4;
+}
+
+.manual-tab.active {
+  color: white;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.manual-tab:focus-visible,
+.manual-header .button:focus-visible {
+  outline: 3px solid #d09a40;
+  outline-offset: 2px;
+}
+
+/* 説明書本文だけをスクロール */
+.manual-content {
+  min-height: 0;
+  padding: 20px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* タブの表示切り替え */
+.manual-page[hidden] {
+  display: none !important;
+}
+
+.manual-page h3 {
+  margin: 0 0 12px;
+  padding-bottom: 8px;
+  color: var(--accent-dark);
+  font-size: 1.05rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.manual-page h3:not(:first-child) {
+  margin-top: 26px;
+}
+
+.manual-page p,
+.manual-page li {
+  font-size: 0.9rem;
+  line-height: 1.85;
+}
+
+.manual-page p {
+  margin: 10px 0 16px;
+}
+
+.manual-page ul,
+.manual-page ol {
+  padding-left: 1.5rem;
+  margin: 10px 0 18px;
+}
+
+.manual-page li {
+  margin: 7px 0;
+  padding-left: 2px;
+}
+
+.manual-page .small-note {
+  padding: 10px 12px;
+  background: #f5f0e7;
+  border-radius: 9px;
+  font-size: 0.78rem;
+}
+
+/* 得点一覧 */
+.manual-score-list {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0;
+}
+
+.manual-score-list > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 0.88rem;
+}
+
+.manual-score-list strong {
+  flex-shrink: 0;
+  color: var(--accent-dark);
+  font-size: 1rem;
+}
+
+/* 目標カード */
+.manual-objective {
+  margin: 12px 0;
+  padding: 14px 15px;
+  background: #fffaf0;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: 10px;
+}
+
+.manual-objective:nth-of-type(even) {
+  background: #f8f3e9;
+}
+
+.manual-objective h4 {
+  margin: 0 0 6px;
+  font-size: 0.94rem;
+  line-height: 1.5;
+}
+
+.manual-objective p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.8;
+}
+
+/* スマートフォン */
+@media (max-width: 480px) {
+  .manual-launcher {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  #manual-open-button {
+    width: 100%;
+  }
+
+  .manual-modal-card {
+    max-height: calc(100dvh - 16px);
+    border-radius: 16px;
+  }
+
+  .manual-header {
+    padding: 16px 14px 12px;
+  }
+
+  .manual-header h2 {
+    font-size: 1.05rem;
+  }
+
+  .manual-header .section-label {
+    font-size: 0.6rem;
+  }
+
+  .manual-header .button {
+    min-height: 38px;
+    padding: 7px 9px;
+    font-size: 0.78rem;
+  }
+
+  .manual-tabs {
+    gap: 4px;
+    padding: 10px 8px;
+  }
+
+  .manual-tab {
+    min-height: 42px;
+    padding: 7px 2px;
+    font-size: 0.7rem;
+  }
+
+  .manual-content {
+    padding: 16px 14px 24px;
+  }
+
+  .manual-page p,
+  .manual-page li {
+    font-size: 0.86rem;
+  }
+
+  .manual-objective {
+    padding: 12px;
+  }
+}
+
+/* 小さなスマートフォン */
+@media (max-width: 360px) {
+  .manual-header {
+    gap: 6px;
+  }
+
+  .manual-header h2 {
+    font-size: 0.95rem;
+  }
+
+  .manual-tab {
+    font-size: 0.64rem;
+  }
+
+  .manual-content {
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+}
