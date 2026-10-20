@@ -50,7 +50,7 @@
             class="difficulty-button versus-mode-button"
             data-difficulty="versus"
           >
-            <span class="difficulty-name">⚔️ 難しいAI対戦</span>
+            <span class="difficulty-name">⚔️ AI対戦</span>
             <span class="difficulty-detail">
               AIとタイルを取り合い、目標と得点で勝負します。
             </span>
@@ -141,50 +141,405 @@
 
       <div class="objectives-grid">
         <!-- メイン目標 -->
+        <article class="objective-card main-objective">
+          <p class="objective-label">MAIN OBJECTIVE</p>
+          <h3 id="main-objective-title">目標を準備中...</h3>
+          <p id="main-objective-description">
+            メイン目標の条件がここに表示されます。
+          </p>
+          <p class="objective-points">達成報酬 <strong>+15点</strong></p>
+          <p id="main-objective-status" class="objective-status">
+            ゲーム終了時に判定
+          </p>
+        </article>
+
+        <!-- サブ目標 -->
+        <article class="objective-card sub-objective">
+          <p class="objective-label">SUB OBJECTIVE</p>
+          <h3 id="sub-objective-title">目標を準備中...</h3>
+          <p id="sub-objective-description">
+            サブ目標の条件がここに表示されます。
+          </p>
+          <p class="objective-points">達成報酬 <strong>+6点</strong></p>
+          <p id="sub-objective-status" class="objective-status">
+            ゲーム終了時に判定
+          </p>
+        </article>
+      </div>
+    </section>
+
+
+
+    <section class="panel">
+
+  <!-- 上段：見出し -->
+  <div class="section-heading">
+    <div>
+      <p class="section-label">YOUR COLLECTION</p>
+      <h2>あなたの棚</h2>
+    </div>
+  </div>
+
+  <!-- 下段：左に棚、右に並べ替えパネル -->
+  <div class="shelf-layout">
+
+    <!-- 左側：棚 -->
+    <div class="shelf-area">
+      <div id="shelf" class="shelf" aria-label="5列6段の棚"></div>
+
+      <p class="help-text">
+        
+      </p>
+    </div>
+
+    <!-- 右側：並べ替えパネルと配置ボタン -->
+    <div id="order-and-button" class="order-and-button">
+    </div>
+
+  </div>
+
+</section>
+
+    <section id="ai-panel" class="panel ai-panel" hidden>
+      <div class="section-heading">
+        <div>
+          <p class="section-label">RIVAL / ADVANCED AI</p>
+          <h2>AIの棚</h2>
+        </div>
+        <strong id="ai-progress" class="ai-progress">0 / 30</strong>
+      </div>
+      <div id="ai-shelf" class="shelf ai-shelf" aria-label="AIの棚"></div>
+      <div class="ai-objectives">
+        <p><strong>AIのメイン目標：</strong><span id="ai-main-objective">準備中</span></p>
+        <p><strong>AIのサブ目標：</strong><span id="ai-sub-objective">準備中</span></p>
+      </div>
+      <p id="ai-status" class="help-text">AIの番を待っています。</p>
+    </section>
+
+    <section class="panel">
+      <div class="section-heading">
+        <div>
+          <p class="section-label">SHARED BOARD</p>
+          <h2>アイテムを選ぶ</h2>
+        </div>
+        <span id="selection-count" class="selection-count">0 / 3 個</span>
+      </div>
+
+      <p class="help-text">
+        取得できるタイルをタップしてください。
+        1〜3個を同じ横列または縦列から選べます。
+      </p>
+
+      <div id="board" class="board" aria-label="共有ボード"></div>
+
+      <div class="action-area">
+        <p id="message" class="message" role="status" aria-live="polite">
+          タイルを選んでゲームを始めましょう。
+        </p>
+        <div class="action-buttons">
+          <button id="clear-button" class="button secondary">
+            選択を解除
+          </button>
+          <button id="place-button" class="button primary" disabled>
+            選んだタイルを置く
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 説明書を開くボタン -->
+    <section class="panel manual-launcher">
+      <div>
+        <p class="section-label">GAME MANUAL</p>
+        <h2>遊び方に迷ったら</h2>
+        <p class="help-text">
+          タイルの取り方や得点、目標カードの条件を確認できます。
+        </p>
+      </div>
+      <button id="manual-open-button" class="button primary" type="button">
+        📖 説明書を開く
+      </button>
+    </section>
+
+    <footer class="footer">
+      <button id="restart-button" class="button secondary">
+        新しいゲームを始める
+      </button>
+      <p>MY LITTLE SHELF · A cozy little shelf puzzle</p>
+    </footer>
+  </main>
+
+  <div id="result-modal" class="modal" hidden>
+    <div class="modal-card" role="dialog" aria-modal="true"
+         aria-labelledby="result-title">
+      <p class="section-label">GAME COMPLETE</p>
+      <h2 id="result-title">棚が完成しました！</h2>
+      <p>おめでとうございます。自分だけの棚ができました。</p>
+            <!-- 完成した棚 -->
+      <section class="result-shelf-section">
+        <h3>完成した棚</h3>
+        <div id="result-shelf" class="result-shelf"
+             aria-label="完成した棚"></div>
+      </section>
+
+      <section id="versus-result" class="versus-result" hidden>
+        <h3 id="versus-result-title">対戦結果</h3>
+        <p id="versus-result-scores"></p>
+        <h3>AIの完成した棚</h3>
+        <div id="result-ai-shelf" class="result-shelf" aria-label="AIの完成した棚"></div>
+        <p id="result-ai-objectives" class="small-note"></p>
+      </section>
+
+      <!-- 得点配分 -->
+      <section class="result-breakdown">
+        <h3>得点配分</h3>
+
+        <div class="result-score-row">
+          <span>基本得点</span>
+          <strong id="result-base-score">0点</strong>
+        </div>
+
+        <div class="result-score-row">
+          <span>メイン目標ボーナス</span>
+          <strong id="result-main-bonus">0点</strong>
+        </div>
+
+        <div class="result-score-row">
+          <span>サブ目標ボーナス</span>
+          <strong id="result-sub-bonus">0点</strong>
+        </div>
+
+        <div class="result-score">
+          最終得点
+          <strong id="final-score">0</strong>
+        </div>
+      </section>
+
+<button id="save-result-image" class="button secondary">
+  結果を画像で保存
+</button>
+
+      <button id="result-restart" class="button primary">
+        もう一度遊ぶ
+      </button>
+    </div>
+  </div>
+
+  <!-- ゲーム説明書 -->
+  <div id="manual-modal" class="modal" hidden>
+    <div class="modal-card manual-modal-card"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="manual-title">
+
+      <div class="manual-header">
+        <div>
+          <p class="section-label">MY LITTLE SHELF GUIDE</p>
+          <h2 id="manual-title">📖 ゲーム説明書</h2>
+        </div>
+        <button id="manual-close-button"
+                class="button secondary"
+                type="button"
+                aria-label="説明書を閉じる">
+          閉じる ✕
+        </button>
+      </div>
+
+      <nav class="manual-tabs" aria-label="説明書の項目">
+        <button class="manual-tab active" type="button"
+                data-manual-tab="basics">基本ルール</button>
+        <button class="manual-tab" type="button"
+                data-manual-tab="scoring">得点</button>
+        <button class="manual-tab" type="button"
+                data-manual-tab="main">メイン目標</button>
+        <button class="manual-tab" type="button"
+                data-manual-tab="sub">サブ目標</button>
+      </nav>
+
+      <div class="manual-content">
+
+        <!-- 基本ルール -->
+        <section class="manual-page active" data-manual-page="basics">
+          <h3>🧺 ゲームの目的</h3>
+          <p>
+            共有ボードからタイルを選び、自分だけの棚を完成させましょう。
+            棚の30マスがすべて埋まるとゲーム終了です。
+          </p>
+
+          <h3>🌷 難易度</h3>
+          <ul>
+            <li><strong>初級：</strong>1〜3個のタイルを選べます。</li>
+            <li><strong>上級：</strong>毎ターン、必ず3個のタイルを選びます。</li>
+          </ul>
+
+          <h3>🪄 タイルの取り方</h3>
+          <ol>
+            <li>共有ボードで取得可能なタイルを選びます。</li>
+            <li>選ぶタイルは、同じ横列または縦列に連続している必要があります。</li>
+            <li>取得できるタイルは、上下左右のいずれかがボードの外側・空きマス・選択中のタイルのマスに接しているものです。タイルを選ぶ順番によって取得できるようになる場合もあります。</li>
+            <li>選んだタイルを棚に配置します。</li>
+            <li>ターン終了後、共有ボードの空きマスが補充されます。</li>
+          </ol>
+
+          <p class="small-note">
+            ※ 上級では、タイルを3個選べない場合の操作はゲーム内の表示に従ってください。
+          </p>
+        </section>
+
+        <!-- 得点ルール -->
+        <section class="manual-page" data-manual-page="scoring" hidden>
+          <h3>⭐ 基本得点</h3>
+          <p>同じ種類のタイルが上下左右につながったグループごとに得点します。</p>
+
+          <div class="manual-score-list">
+            <div><span>同じ種類が3個</span><strong>2点</strong></div>
+            <div><span>同じ種類が4個</span><strong>3点</strong></div>
+            <div><span>同じ種類が5個</span><strong>5点</strong></div>
+            <div><span>同じ種類が6個以上</span><strong>8点</strong></div>
+          </div>
+
+          <p class="small-note">
+            1〜2個のグループは0点です。斜めにつながっていても得点にはなりません。
+            それぞれのグループを個別に採点します。
+          </p>
+
+          <h3>🎁 目標達成ボーナス</h3>
+          <div class="manual-score-list">
+            <div><span>メイン目標を達成</span><strong>+15点</strong></div>
+            <div><span>サブ目標を達成</span><strong>+6点</strong></div>
+          </div>
+
+          <p>
+            最終得点は「基本得点＋メイン目標ボーナス＋サブ目標ボーナス」です。
+            目標の達成状況はゲーム終了時に判定します。
+          </p>
+        </section>
+
+        <!-- メイン目標 -->
         <section class="manual-page" data-manual-page="main" hidden>
           <h3>🏆 メイン目標一覧（各 +15点）</h3>
           <p class="small-note">
             今回のゲームで表示されているメイン目標の条件を確認してください。
           </p>
 
-          <article class="manual-objective"><h4>📚 本のコレクター</h4><p>📚を8個以上、本棚に置こう。</p></article>
-          <article class="manual-objective"><h4>🌿 緑のある暮らし</h4><p>🌿を4列以上に置き、そのうち2列以上に各2個以上置こう。</p></article>
-          <article class="manual-objective"><h4>🐈 ネコのいる本棚</h4><p>🐈を4段以上に置こう。</p></article>
-          <article class="manual-objective"><h4>🧸 充実のコレクション</h4><p>6種類中5種類以上を、それぞれ3個以上集めよう。</p></article>
-          <article class="manual-objective"><h4>🎨 彩り豊かな棚</h4><p>3種類以上のタイルがある段を4段以上作ろう。</p></article>
-          <article class="manual-objective"><h4>🔗 グループの達人</h4><p>同じ種類のタイルが4個以上つながったグループを2つ作ろう。</p></article>
-          <article class="manual-objective"><h4>📖 読書家の特等席</h4><p>📚を6個以上置き、3段以上に分散させよう。</p></article>
-          <article class="manual-objective"><h4>🐈 ネコの王国</h4><p>🐈を6個以上置き、3列以上に配置しよう。</p></article>
-          <article class="manual-objective"><h4>➡️ 横並びコレクション</h4><p>同じ種類のタイルが横に3個以上連続する並びを2つ以上作ろう。</p></article>
-          <article class="manual-objective"><h4>🪴 バランスのよい本棚</h4><p>6種類すべてを置き、それぞれを2段以上に分散させよう。</p></article>
-          <article class="manual-objective"><h4>🧹 整った暮らし</h4><p>同じ種類のタイルを2個以上含む段を3段作り、さらに4種類以上のタイルを集めよう。</p></article>
-          <article class="manual-objective"><h4>🌱 小さな植物園</h4><p>🌿を6個以上置き、4段以上に配置しよう。</p></article>
-          <article class="manual-objective"><h4>🌈 五色の一段</h4><p>1段に5種類すべてのタイルを配置しよう。</p></article>
-          <article class="manual-objective"><h4>🔲 四隅の飾り</h4><p>棚の四隅をすべて埋め、3種類以上のタイルを使おう。</p></article>
+          <article class="manual-objective">
+            <h4>📚 本のコレクター</h4>
+            <p>本のタイルを8個以上置く。</p>
+          </article>
+          <article class="manual-objective">
+            <h4>🌿 緑のある暮らし</h4>
+            <p>植物を4列以上に置き、さらに植物が2個以上ある列を2列以上作る。</p>
+          </article>
+          <article class="manual-objective">
+            <h4>🐈 ネコのいる本棚</h4>
+            <p>ネコを4段以上に置く。</p>
+          </article>
+          <article class="manual-objective">
+            <h4>🧸 充実のコレクション</h4>
+            <p>6種類のうち5種類以上を、それぞれ3個以上置く。</p>
+          </article>
+          <article class="manual-objective">
+            <h4>🎨 彩り豊かな棚</h4>
+            <p>異なる種類のタイルが3種類以上ある段を4段以上作る。</p>
+          </article>
+          <article class="manual-objective">
+            <h4>🔗 グループの達人</h4>
+            <p>同じ種類が4個以上つながったグループを2つ以上作る。</p>
+          </article>
+          <article class="manual-objective">
+            <h4>📖 読書家の特等席</h4>
+            <p>本を6個以上置き、本がある段を3段以上作る。</p>
+          </article>
+          <article class="manual-objective">
+            <h4>🐈 ネコの王国</h4>
+            <p>ネコを6個以上置き、ネコがある列を3列以上作る。</p>
+          </article>
+          <article class="manual-objective">
+            <h4>➡️ 横並びコレクション</h4>
+            <p>同じ種類が横に3個以上連続する並びを2つ以上作る。</p>
+          </article>
+          <article class="manual-objective">
+            <h4>🪴 バランスのよい本棚</h4>
+            <p>6種類すべてを置き、それぞれの種類が2段以上に登場する。</p>
+          </article>
+          <article class="manual-objective">
+            <h4>🧹 整った暮らし</h4>
+            <p>同じ種類が2個以上ある段を3段以上作り、4種類以上のタイルを置く。</p>
+          </article>
+          <article class="manual-objective">
+            <h4>🌱 小さな植物園</h4>
+            <p>植物を6個以上置き、植物がある段を4段以上作る。</p>
+          </article>
         </section>
 
         <!-- サブ目標 -->
         <section class="manual-page" data-manual-page="sub" hidden>
           <h3>✨ サブ目標一覧（各 +6点）</h3>
 
-          <article class="manual-objective"><h4>🌿 グリーンを飾ろう</h4><p>🌿を5個以上置こう。</p></article>
-          <article class="manual-objective"><h4>🖼️ アートギャラリー</h4><p>🖼️を3列以上に置こう。</p></article>
-          <article class="manual-objective"><h4>📚 遊びと読書</h4><p>📚と🎲をそれぞれ4個以上置こう。</p></article>
-          <article class="manual-objective"><h4>🏆 栄光のトロフィー</h4><p>🏆を3段以上に置こう。</p></article>
-          <article class="manual-objective"><h4>🐈 ネコと本のある暮らし</h4><p>🐈を3個以上置き、そのうち2個以上を📚に上下左右で隣接させよう。</p></article>
-          <article class="manual-objective"><h4>🎨 カラフルな本棚</h4><p>3種類以上のタイルがある段を3段作ろう。</p></article>
-          <article class="manual-objective"><h4>🎲 ゲーム好き</h4><p>🎲を5個以上置こう。</p></article>
-          <article class="manual-objective"><h4>🖼️ 小さな美術館</h4><p>🖼️を4個以上置こう。</p></article>
-          <article class="manual-objective"><h4>🏆 幸運のお守り</h4><p>🏆を4個以上置こう。</p></article>
-          <article class="manual-objective"><h4>🐈 ネコのお昼寝</h4><p>🐈を2段以上に置き、各段に2個以上置こう。</p></article>
-          <article class="manual-objective"><h4>📚 読書と緑</h4><p>📚と🌿をそれぞれ4個以上置こう。</p></article>
-          <article class="manual-objective"><h4>⭐ お気に入りの一段</h4><p>同じ種類のタイルが同じ段に4個以上ある段を2段以上作ろう（横に連続している必要はありません）。</p></article>
-          <article class="manual-objective"><h4>🌈 小さなミックス</h4><p>1段に4種類以上のタイルを配置しよう。</p></article>
-          <article class="manual-objective"><h4>↕️ 上下のつながり</h4><p>同じ種類のタイルが上下に隣接する組を3組作ろう。</p></article>
-          <article class="manual-objective"><h4>↔️ 横並びコレクション</h4><p>同じ種類のタイルが左右に隣接する組を3組作ろう。</p></article>
-          <article class="manual-objective"><h4>⚖️ バランス上手</h4><p>6種類のタイルをそれぞれ2個以上置こう。</p></article>
-          <article class="manual-objective"><h4>⚖️ 偏りのない棚</h4><p>6種類すべてを置き、最多と最少の個数の差を2個以内にしよう。</p></article>
-          <article class="manual-objective"><h4>🧩 大きなまとまり、小さなまとまり</h4><p>6個以上のグループを1つ、さらに3個以上の別グループを2つ作ろう。</p></article>
+          <article class="manual-objective">
+            <h4>🌿 グリーンを飾ろう</h4>
+            <p>植物を5個以上置く。</p>
+          </article>
+          <article class="manual-objective">
+            <h4>🖼️ アートギャラリー</h4>
+            <p>絵のタイルを3列以上に置く。</p>
+          </article>
+          <article class="manual-objective">
+            <h4>📚 遊びと読書</h4>
+            <p>本とゲームをそれぞれ4個以上置く。</p>
+          </article>
+          <article class="manual-objective">
+            <h4>🏆 栄光のトロフィー</h4>
+            <p>トロフィーを3段以上に置く。</p>
+          </article>
+          <article class="manual-objective">
+            <h4>🐈 ネコと本のある暮らし</h4>
+            <p>ネコを3個以上置き、そのうち本に上下左右で接しているネコを2個以上作る。</p>
+          </article>
+          <article class="manual-objective">
+            <h4>🎨 カラフルな本棚</h4>
+            <p>異なる種類のタイルが3種類以上ある段を3段以上作る。</p>
+          </article>
+          <article class="manual-objective">
+            <h4>🎲 ゲーム好き</h4>
+            <p>ゲームのタイルを5個以上置く。</p>
+          </article>
+          <article class="manual-objective">
+            <h4>🖼️ 小さな美術館</h4>
+            <p>絵のタイルを4個以上置く。</p>
+          </article>
+          <article class="manual-objective">
+            <h4>🏆 幸運のお守り</h4>
+            <p>トロフィーを4個以上置く。</p>
+          </article>
+          <article class="manual-objective">
+            <h4>🐈 ネコのお昼寝</h4>
+            <p>ネコが2個以上ある段を2段以上作る。</p>
+          </article>
+          <article class="manual-objective">
+            <h4>📚 読書と緑</h4>
+            <p>本と植物をそれぞれ4個以上置く。</p>
+          </article>
+          <article class="manual-objective">
+            <h4>⭐ お気に入りの一段</h4>
+            <p>同じ種類のタイルが同じ段に4個以上ある段を2段以上作る（横に連続している必要はありません）。</p>
+          </article>
+          <article class="manual-objective">
+            <h4>🌈 小さなミックス</h4>
+            <p>4種類以上のタイルがある段を1段以上作る。</p>
+          </article>
+          <article class="manual-objective">
+            <h4>↕️ 上下のつながり</h4>
+            <p>同じ種類のタイルが上下に隣り合うペアを3組以上作る。</p>
+          </article>
+          <article class="manual-objective">
+            <h4>↔️ 横並びコレクション</h4>
+            <p>同じ種類のタイルが左右に隣り合うペアを3組以上作る。</p>
+          </article>
+          <article class="manual-objective">
+            <h4>⚖️ バランス上手</h4>
+            <p>6種類すべてを、それぞれ2個以上置く。</p>
+          </article>
         </section>
       </div>
     </div>
