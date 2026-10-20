@@ -123,9 +123,35 @@ const MAIN_OBJECTIVES = [
     title: "小さな植物園",
     description: "🌿を6個以上置き、4段以上に配置しよう。",
     check: (s) =>
-      countTiles(s, "plant") >= 6 && countRowsWith(s, "plant") >= 4
+      countTiles(s, "plant") >= 6 &&
+      countRowsWith(s, "plant") >= 4
+  },
+  {
+    id: "M13",
+    title: "五色の一段",
+    description: "1段に5種類すべてのタイルを配置しよう。",
+    check: (s) => countColorfulRows(s, 5) >= 1
+  },
+  {
+    id: "M14",
+    title: "四隅の飾り",
+    description: "棚の四隅をすべて埋め、3種類以上のタイルを使おう。",
+    check: (s) => {
+      const corners = [
+        s[0][0],
+        s[SHELF_COLUMNS - 1][0],
+        s[0][SHELF_ROWS - 1],
+        s[SHELF_COLUMNS - 1][SHELF_ROWS - 1]
+      ];
+
+      return (
+        corners.every(tile => tile !== undefined && tile !== null) &&
+        new Set(corners.map(tile => tile.id)).size >= 3
+      );
+    }
   }
 ];
+
 
 const SUB_OBJECTIVES = [
   {
@@ -229,6 +255,29 @@ const SUB_OBJECTIVES = [
     description: "6種類のタイルをそれぞれ2個以上置こう。",
     check: (s) =>
       TILE_TYPES.every(type => countTiles(s, type.id) >= 2)
+  },
+  {
+    id: "S17",
+    title: "偏りのない棚",
+    description: "6種類すべてを置き、最多と最少の個数の差を2個以内にしよう。",
+    check: (s) => {
+      const counts = TILE_TYPES.map(
+        type => countTiles(s, type.id)
+      );
+
+      const maximum = Math.max(...counts);
+      const minimum = Math.min(...counts);
+
+      return minimum >= 1 && maximum - minimum <= 2;
+    }
+  },
+  {
+    id: "S18",
+    title: "大きなまとまり、小さなまとまり",
+    description: "6個以上のグループを1つ、さらに3個以上の別グループを2つ作ろう。",
+    check: (s) =>
+      countLargeGroups(s, 6) >= 1 &&
+      countLargeGroups(s, 3) >= 3
   }
 ];
 
@@ -268,6 +317,16 @@ let gameOver = false;
 // 選択中の難易度（easy：初級、hard：上級）
 let difficultyMode = null;
 let lockedScrollY = 0;
+
+// AI対戦専用の状態
+let aiShelf = [];
+let aiMainObjective = null;
+let aiSubObjective = null;
+let aiMainAchieved = false;
+let aiSubAchieved = false;
+let aiFinalScore = 0;
+let aiTurnCount = 0;
+let isAiThinking = false;
 
 
 /* ========================================
@@ -360,7 +419,9 @@ function updatePlayRecords(finalScore) {
   }
 
   // 難易度ごとに最高得点を保存
-  if (difficultyMode === "hard") {
+  if (difficultyMode === "versus") {
+    // 対戦記録は通常モードの最高得点には混ぜない。
+  } else if (difficultyMode === "hard") {
     if (
       playRecords.hardBestScoreDate === null ||
       finalScore > playRecords.hardBestScore
@@ -425,6 +486,18 @@ const resultModal = document.getElementById("result-modal");
 const finalScoreElement = document.getElementById("final-score");
 const resultRestartButton =
   document.getElementById("result-restart");
+
+const aiPanelElement = document.getElementById("ai-panel");
+const aiShelfElement = document.getElementById("ai-shelf");
+const aiProgressElement = document.getElementById("ai-progress");
+const aiMainObjectiveElement = document.getElementById("ai-main-objective");
+const aiSubObjectiveElement = document.getElementById("ai-sub-objective");
+const aiStatusElement = document.getElementById("ai-status");
+const versusResultElement = document.getElementById("versus-result");
+const versusResultTitleElement = document.getElementById("versus-result-title");
+const versusResultScoresElement = document.getElementById("versus-result-scores");
+const resultAiShelfElement = document.getElementById("result-ai-shelf");
+const resultAiObjectivesElement = document.getElementById("result-ai-objectives");
 
 /* ========================================
    プレイ記録画面
@@ -911,6 +984,79 @@ function renderShelf() {
 }
 
 // ========================================
+// AIの棚を描画
+// ========================================
+
+function renderAiShelf(targetElement = aiShelfElement) {
+  if (!targetElement) return;
+  targetElement.innerHTML = "";
+
+  for (let col = 0; col < SHELF_COLUMNS; col++) {
+    const column = document.createElement("div");
+    column.className = "shelf-column";
+
+    for (let row = SHELF_ROWS - 1; row >= 0; row--) {
+      const cell = document.createElement("div");
+      cell.className = "shelf-cell";
+      const tile = aiShelf[col] ? aiShelf[col][row] : null;
+
+      if (tile) {
+        cell.classList.add("filled");
+        cell.textContent = tile.emoji;
+        cell.title = tile.name;
+      } else {
+        cell.classList.add("empty");
+      }
+      column.appendChild(cell);
+    }
+    targetElement.appendChild(column);
+  }
+}
+
+function renderAiStatus() {
+  if (!aiPanelElement) return;
+  const placed = aiShelf.reduce((sum, column) => sum + column.length, 0);
+  aiProgressElement.textContent = `${placed} / ${SHELF_COLUMNS * SHELF_ROWS}`;
+  aiMainObjectiveElement.textContent = aiMainObjective ? aiMainObjective.title : "準備中";
+  aiSubObjectiveElement.textContent = aiSubObjective ? aiSubObjective.title : "準備中";
+}
+
+// ========================================
+// AIの棚を描画
+// ========================================
+
+function renderAiShelf(targetElement = aiShelfElement) {
+  if (!targetElement) return;
+  targetElement.innerHTML = "";
+  for (let col = 0; col < SHELF_COLUMNS; col++) {
+    const column = document.createElement("div");
+    column.className = "shelf-column";
+    for (let row = SHELF_ROWS - 1; row >= 0; row--) {
+      const cell = document.createElement("div");
+      cell.className = "shelf-cell";
+      const tile = aiShelf[col] ? aiShelf[col][row] : null;
+      if (tile) {
+        cell.classList.add("filled");
+        cell.textContent = tile.emoji;
+        cell.title = tile.name;
+      } else {
+        cell.classList.add("empty");
+      }
+      column.appendChild(cell);
+    }
+    targetElement.appendChild(column);
+  }
+}
+
+function renderAiStatus() {
+  if (!aiPanelElement) return;
+  const placed = aiShelf.reduce((sum, column) => sum + column.length, 0);
+  aiProgressElement.textContent = `${placed} / ${SHELF_COLUMNS * SHELF_ROWS}`;
+  aiMainObjectiveElement.textContent = aiMainObjective ? aiMainObjective.title : "準備中";
+  aiSubObjectiveElement.textContent = aiSubObjective ? aiSubObjective.title : "準備中";
+}
+
+// ========================================
 // 結果画面に完成した棚を描画
 // ========================================
 
@@ -950,7 +1096,7 @@ function renderResultShelf() {
 
 // 棚の上下左右につながった同じ種類のタイルを
 // グループとして調べる。
-function calculateScore() {
+function calculateScore(targetShelf = shelf) {
   const visited = new Set();
   let totalScore = 0;
 
@@ -973,7 +1119,7 @@ function calculateScore() {
   for (let row = 0; row < SHELF_ROWS; row++) {
     for (let col = 0; col < SHELF_COLUMNS; col++) {
       // row=0 は棚の一番下
-      cells.push(shelf[col][row] || null);
+      cells.push(targetShelf[col][row] || null);
     }
   }
 
@@ -1478,7 +1624,7 @@ function renderStatus() {
   // その列に十分な空きがある場合だけ実行可能。
   const canPlace =
     selectedTiles.length > 0 &&
-    (difficultyMode !== "hard" ||
+    ((difficultyMode !== "hard" && difficultyMode !== "versus") ||
       selectedTiles.length === MAX_SELECTION) &&
     selectedColumn !== null &&
     selectedTiles.length <=
@@ -1498,6 +1644,10 @@ function renderAll() {
   renderSelectedOrder();
   renderStatus();
   renderObjectives();
+  if (difficultyMode === "versus") {
+    renderAiShelf();
+    renderAiStatus();
+  }
 }
 
 // ========================================
@@ -1613,53 +1763,48 @@ function handleColumnClick(col) {
 // ========================================
 
 function placeSelectedTiles() {
-if (
+  if (
     gameOver ||
     selectedTiles.length === 0 ||
     selectedColumn === null ||
-    (difficultyMode === "hard" &&
+    ((difficultyMode === "hard" || difficultyMode === "versus") &&
       selectedTiles.length !== MAX_SELECTION)
-  ) {
-    return;
-  }
+  ) return;
 
   const col = selectedColumn;
-
-  // 空きマスが足りない場合は置かない
-  if (
-    selectedTiles.length >
-    SHELF_ROWS - shelf[col].length
-  ) {
-    messageElement.textContent =
-      "選択した列の空きマスが足りません。";
-
+  if (selectedTiles.length > SHELF_ROWS - shelf[col].length) {
+    messageElement.textContent = "選択した列の空きマスが足りません。";
     return;
   }
 
-  // 今回は共有ボードの左上から右下への順に配置。
-  // 後の段階で、配置順を選べる機能に拡張できる。
-
- // 選択した順番のまま、本棚の一番下から積み上げる
-// リストの下から上へ、本棚の下から順に積み上げる
-for (const index of [...selectedTiles].reverse()) {
-  shelf[col].push(board[index]);
-  board[index] = null;
-}
-
+  for (const index of [...selectedTiles].reverse()) {
+    shelf[col].push(board[index]);
+    board[index] = null;
+  }
   selectedTiles = [];
   selectedColumn = null;
-
-  // ターン終了時に空きマスをまとめて補充
   refillBoard();
 
+  if (difficultyMode === "versus") {
+    messageElement.textContent = "あなたが配置しました。AIが共有ボードを分析しています…";
+    renderAll();
+    runAiTurn();
+    refillBoard();
+    turn++;
+    renderAll();
+
+    if (isVersusGameComplete()) {
+      finishVersusGame();
+    } else {
+      messageElement.textContent = `AIの番が終わりました。ターン${turn}：共有ボードから3個選んでください。`;
+      aiStatusElement.textContent = `AIは${aiTurnCount}ターン完了。次はあなたの番です。`;
+    }
+    return;
+  }
+
   turn++;
-
   renderAll();
-
-  messageElement.textContent =
-    "配置しました。共有ボードを補充しました。次のタイルを選んでください。";
-
-  // 棚がすべて埋まったら終了
+  messageElement.textContent = "配置しました。共有ボードを補充しました。次のタイルを選んでください。";
   checkGameOver();
 }
 
@@ -1690,10 +1835,214 @@ function clearSelection() {
 }
 
 // ========================================
+// AI対戦：難しいAIの思考
+// ========================================
+
+function cloneShelf(sourceShelf) {
+  return sourceShelf.map(column => column.map(tile => tile ? { ...tile } : null));
+}
+
+function permuteTiles(items) {
+  if (items.length <= 1) return [items.slice()];
+  const result = [];
+  items.forEach((item, index) => {
+    permuteTiles(items.filter((_, i) => i !== index))
+      .forEach(rest => result.push([item, ...rest]));
+  });
+  return result;
+}
+
+// 目標達成への近さを評価し、AIが目標に沿った配置を選ぶ。
+function objectiveProgress(targetShelf, objective) {
+  if (!objective) return 0;
+  if (objective.check(targetShelf)) return 1;
+
+  const count = id => countTiles(targetShelf, id);
+  const rows = id => countRowsWith(targetShelf, id);
+  const cols = id => targetShelf.filter(col => col.some(t => t && t.id === id)).length;
+  const ratio = (n, goal) => Math.min(1, n / goal);
+  const kinds = minimum => TILE_TYPES.filter(t => count(t.id) >= minimum).length;
+
+  switch (objective.id) {
+    case "M01": return ratio(count("book"), 8);
+    case "M02": return Math.min(ratio(cols("plant"), 4), ratio(targetShelf.filter(c => c.filter(t => t && t.id === "plant").length >= 2).length, 2));
+    case "M03": return ratio(rows("cat"), 4);
+    case "M04": return ratio(kinds(3), 5);
+    case "M05": return ratio(countColorfulRows(targetShelf, 3), 4);
+    case "M06": return ratio(countLargeGroups(targetShelf, 4), 2);
+    case "M07": return Math.min(ratio(count("book"), 6), ratio(rows("book"), 3));
+    case "M08": return Math.min(ratio(count("cat"), 6), ratio(cols("cat"), 3));
+    case "M09": return ratio(countHorizontalRuns(targetShelf, 3), 2);
+    case "M10": return Math.min(ratio(kinds(1), 6), ratio(TILE_TYPES.filter(t => rows(t.id) >= 2).length, 6));
+    case "M11": return Math.min(ratio(countRowsWithRepeatedType(targetShelf, 2), 3), ratio(kinds(1), 4));
+    case "M12": return Math.min(ratio(count("plant"), 6), ratio(rows("plant"), 4));
+    case "M13": return ratio(countColorfulRows(targetShelf, 5), 1);
+    case "M14": {
+      const corners = [targetShelf[0][0], targetShelf[4][0], targetShelf[0][5], targetShelf[4][5]];
+      return Math.min(1, corners.filter(Boolean).length / 4 * 0.8 +
+        (new Set(corners.filter(Boolean).map(t => t.id)).size >= 3 ? 0.2 : 0));
+    }
+    case "S01": return ratio(count("plant"), 5);
+    case "S02": return ratio(cols("picture"), 3);
+    case "S03": return Math.min(ratio(count("book"), 4), ratio(count("game"), 4));
+    case "S04": return ratio(rows("trophy"), 3);
+    case "S05": return Math.min(ratio(count("cat"), 3), ratio(countCatNeighbors(targetShelf), 2));
+    case "S06": return ratio(countColorfulRows(targetShelf, 3), 3);
+    case "S07": return ratio(count("game"), 5);
+    case "S08": return ratio(count("picture"), 4);
+    case "S09": return ratio(count("trophy"), 4);
+    case "S10": return ratio(countRowsWithAtLeast(targetShelf, "cat", 2), 2);
+    case "S11": return Math.min(ratio(count("book"), 4), ratio(count("plant"), 4));
+    case "S12": return ratio(countRowsWithRepeatedType(targetShelf, 4), 2);
+    case "S13": return ratio(countColorfulRows(targetShelf, 4), 1);
+    case "S14": return ratio(countVerticalPairs(targetShelf), 3);
+    case "S15": return ratio(countHorizontalPairs(targetShelf), 3);
+    case "S16": return ratio(TILE_TYPES.filter(t => count(t.id) >= 2).length, 6);
+    case "S17": {
+      const counts = TILE_TYPES.map(t => count(t.id));
+      const max = Math.max(...counts), min = Math.min(...counts);
+      return Math.min(1, ratio(counts.filter(n => n > 0).length, 6) * 0.7 +
+        (min > 0 ? Math.max(0, 1 - (max - min) / 6) * 0.3 : 0));
+    }
+    case "S18": return Math.min(1, ratio(countLargeGroups(targetShelf, 6), 1) * 0.6 + ratio(countLargeGroups(targetShelf, 3), 3) * 0.4);
+    default: return 0;
+  }
+}
+
+function evaluateAiShelf(candidateShelf, chosenTileIds) {
+  const base = calculateScore(candidateShelf);
+  const main = objectiveProgress(candidateShelf, aiMainObjective);
+  const sub = objectiveProgress(candidateShelf, aiSubObjective);
+
+  // 相手の目標に合うタイルを取ることも評価する。
+  let denial = 0;
+  for (const id of chosenTileIds) {
+    const tile = TILE_TYPES.find(t => t.id === id);
+    if (!tile) continue;
+    if (currentMainObjective && currentMainObjective.id === "M01" && id === "book") denial += 1.2;
+    if (currentMainObjective && currentMainObjective.id === "M03" && id === "cat") denial += 1.0;
+    if (currentMainObjective && currentMainObjective.id === "M12" && id === "plant") denial += 1.0;
+    if (currentSubObjective && ["S01", "S11"].includes(currentSubObjective.id) && id === "plant") denial += 0.8;
+    if (currentSubObjective && ["S07", "S03"].includes(currentSubObjective.id) && id === "game") denial += 0.8;
+    if (currentSubObjective && ["S08", "S02"].includes(currentSubObjective.id) && id === "picture") denial += 0.8;
+    if (currentSubObjective && currentSubObjective.id === "S09" && id === "trophy") denial += 0.8;
+  }
+  return base * 1.5 + main * 16 + sub * 9 + denial;
+}
+
+function getAiCandidateGroups() {
+  const groups = [];
+  const seen = new Set();
+  for (let row = 0; row < BOARD_ROWS; row++) {
+    for (let col = 0; col < BOARD_COLUMNS; col++) {
+      const candidates = [];
+      if (col <= BOARD_COLUMNS - 3) candidates.push([row * BOARD_COLUMNS + col, row * BOARD_COLUMNS + col + 1, row * BOARD_COLUMNS + col + 2]);
+      if (row <= BOARD_ROWS - 3) candidates.push([row * BOARD_COLUMNS + col, (row + 1) * BOARD_COLUMNS + col, (row + 2) * BOARD_COLUMNS + col]);
+      for (const indices of candidates) {
+        const key = [...indices].sort((a, b) => a - b).join(",");
+        if (seen.has(key)) continue;
+        seen.add(key);
+        const validOrder = permuteTiles(indices).find(order =>
+          isValidGroup(order) && isValidAccessibleSelection(order)
+        );
+        if (validOrder) groups.push({ indices, validOrder });
+      }
+    }
+  }
+  return groups;
+}
+
+function runAiTurn() {
+  if (difficultyMode !== "versus" || gameOver) return;
+  isAiThinking = true;
+  const groups = getAiCandidateGroups();
+  let bestMove = null;
+  let bestValue = -Infinity;
+
+  for (const group of groups) {
+    const tiles = group.indices.map(index => board[index]);
+    if (tiles.some(tile => !tile)) continue;
+
+    for (let col = 0; col < SHELF_COLUMNS; col++) {
+      if (aiShelf[col].length + MAX_SELECTION > SHELF_ROWS) continue;
+      for (const order of permuteTiles(tiles)) {
+        const trial = cloneShelf(aiShelf);
+        // 配置順を試し、連結得点と目標達成への近さを評価する。
+        for (const tile of [...order].reverse()) trial[col].push({ ...tile });
+        const value = evaluateAiShelf(trial, tiles.map(tile => tile.id)) + Math.random() * 0.05;
+        if (value > bestValue) {
+          bestValue = value;
+          bestMove = { indices: group.indices.slice(), order: order.slice(), column: col };
+        }
+      }
+    }
+  }
+
+  if (!bestMove) {
+    isAiThinking = false;
+    aiStatusElement.textContent = "AIが合法手を見つけられませんでした。もう一度お試しください。";
+    return;
+  }
+
+  for (const index of bestMove.indices) board[index] = null;
+  for (const tile of [...bestMove.order].reverse()) {
+    aiShelf[bestMove.column].push({ ...tile });
+  }
+  aiTurnCount++;
+  isAiThinking = false;
+  aiStatusElement.textContent = `AIは「${aiMainObjective.title}」と「${aiSubObjective.title}」を意識して3個を獲得しました。`;
+}
+
+function isVersusGameComplete() {
+  const playerCount = shelf.reduce((sum, col) => sum + col.length, 0);
+  const rivalCount = aiShelf.reduce((sum, col) => sum + col.length, 0);
+  return playerCount >= SHELF_COLUMNS * SHELF_ROWS &&
+    rivalCount >= SHELF_COLUMNS * SHELF_ROWS;
+}
+
+function finishVersusGame() {
+  if (gameOver) return;
+  gameOver = true;
+
+  mainObjectiveAchieved = currentMainObjective.check(shelf);
+  subObjectiveAchieved = currentSubObjective.check(shelf);
+  aiMainAchieved = aiMainObjective.check(aiShelf);
+  aiSubAchieved = aiSubObjective.check(aiShelf);
+
+  const playerBase = calculateScore(shelf);
+  const playerBonus = (mainObjectiveAchieved ? 15 : 0) + (subObjectiveAchieved ? 6 : 0);
+  const playerFinal = playerBase + playerBonus;
+  const aiBase = calculateScore(aiShelf);
+  const aiBonus = (aiMainAchieved ? 15 : 0) + (aiSubAchieved ? 6 : 0);
+  aiFinalScore = aiBase + aiBonus;
+
+  updatePlayRecords(playerFinal);
+  renderResultShelf();
+  renderAiShelf(resultAiShelfElement);
+  resultBaseScoreElement.textContent = `${playerBase}点`;
+  resultMainBonusElement.textContent = `${mainObjectiveAchieved ? 15 : 0}点`;
+  resultSubBonusElement.textContent = `${subObjectiveAchieved ? 6 : 0}点`;
+  finalScoreElement.textContent = playerFinal;
+
+  versusResultElement.hidden = false;
+  versusResultTitleElement.textContent = playerFinal > aiFinalScore ? "🎉 あなたの勝ち！" :
+    playerFinal < aiFinalScore ? "🤖 AIの勝ち！" : "🤝 引き分け！";
+  versusResultScoresElement.textContent = `あなた：${playerFinal}点（基本 ${playerBase}点＋目標 ${playerBonus}点） ／ AI：${aiFinalScore}点（基本 ${aiBase}点＋目標 ${aiBonus}点）`;
+  resultAiObjectivesElement.textContent = `AIの目標：${aiMainObjective.title}（${aiMainAchieved ? "達成" : "未達成"}）、${aiSubObjective.title}（${aiSubAchieved ? "達成" : "未達成"}）`;
+  resultModal.hidden = false;
+  messageElement.textContent = `対戦終了！ あなた ${playerFinal}点、AI ${aiFinalScore}点。`;
+  renderAll();
+}
+
+// ========================================
 // 15. ゲーム終了の判定
 // ========================================
 
 function checkGameOver() {
+  if (difficultyMode === "versus") {
+    if (isVersusGameComplete()) finishVersusGame();
+    return;
+  }
   const placedCount = shelf.reduce(
     (sum, column) => sum + column.length,
     0
@@ -1762,6 +2111,8 @@ updatePlayRecords(finalScore);
 // 難易度選択画面を表示して背景を固定する
 function showDifficultyScreen() {
   resultModal.hidden = true;
+  versusResultElement.hidden = true;
+  aiPanelElement.hidden = true;
   difficultyScreen.hidden = false;
 
   // 現在のスクロール位置を保存
@@ -1779,6 +2130,8 @@ function showDifficultyScreen() {
 function chooseDifficulty(mode) {
   difficultyMode = mode;
   difficultyScreen.hidden = true;
+  aiPanelElement.hidden = difficultyMode !== "versus";
+  versusResultElement.hidden = true;
 
   // 遊び方の説明を難易度に合わせて変更
   const boardPanel = boardElement.closest(".panel");
@@ -1789,10 +2142,12 @@ function chooseDifficulty(mode) {
   const rulesFirstItem =
     document.querySelector(".rules-list li");
 
-  if (difficultyMode === "hard") {
+  if (difficultyMode === "hard" || difficultyMode === "versus") {
     if (boardHelpText) {
       boardHelpText.textContent =
-        "上級：必ず3個のタイルを選びます。同じ横列または縦列から選んでください。";
+        difficultyMode === "versus"
+          ? "AI対戦：あなたとAIが交互に、共有ボードから必ず3個のタイルを選びます。"
+          : "上級：必ず3個のタイルを選びます。同じ横列または縦列から選んでください。";
     }
 
     if (rulesFirstItem) {
@@ -1850,6 +2205,16 @@ function startNewGame() {
   selectedColumn = null;
   turn = 1;
   gameOver = false;
+  aiShelf = Array.from({ length: SHELF_COLUMNS }, () => []);
+  aiTurnCount = 0;
+  isAiThinking = false;
+  aiMainObjective = MAIN_OBJECTIVES[Math.floor(Math.random() * MAIN_OBJECTIVES.length)];
+  aiSubObjective = SUB_OBJECTIVES[Math.floor(Math.random() * SUB_OBJECTIVES.length)];
+  aiMainAchieved = false;
+  aiSubAchieved = false;
+  aiFinalScore = 0;
+  versusResultElement.hidden = true;
+  aiPanelElement.hidden = difficultyMode !== "versus";
 
   // メイン目標をランダムに選ぶ
   currentMainObjective =
@@ -1870,9 +2235,11 @@ currentSubObjective =
   resultModal.hidden = true;
 
   messageElement.textContent =
-    difficultyMode === "hard"
-      ? "上級：タイルを必ず3個選び、置きたい列を選択してください。"
-      : "初級：タイルを1〜3個選び、置きたい列を選択してください。";
+    difficultyMode === "versus"
+      ? "AI対戦：必ず3個選び、置きたい列を選択してください。AIも同じ共有ボードから選びます。"
+      : difficultyMode === "hard"
+        ? "上級：タイルを必ず3個選び、置きたい列を選択してください。"
+        : "初級：タイルを1〜3個選び、置きたい列を選択してください。";
 
   renderAll();
 }
@@ -1980,7 +2347,7 @@ saveResultImageButton.addEventListener("click", async () => {
     });
 
     const link = document.createElement("a");
-    link.download = "MY-SHELF-result.png";
+    link.download = "MY-SHELFIE-result.png";
     link.href = canvas.toDataURL("image/png");
     link.click();
 
