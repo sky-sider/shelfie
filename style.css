@@ -1283,3 +1283,80 @@ body.difficulty-open {
     padding-left: 12px;
   }
 }
+
+
+/* ========================================
+   AI対戦モード
+======================================== */
+.versus-mode-button {
+  border-color: #c49b62;
+  background: #fff8e9;
+}
+.versus-mode-button .difficulty-name {
+  color: #8b6332;
+}
+.ai-panel[hidden],
+.versus-result[hidden] {
+  display: none !important;
+}
+.ai-panel {
+  border-color: #c8b38d;
+  background: #fffaf0;
+}
+.ai-progress {
+  color: #8b6332;
+  white-space: nowrap;
+}
+.ai-shelf {
+  pointer-events: none;
+  opacity: 0.96;
+}
+.ai-shelf .shelf-column {
+  cursor: default;
+}
+.ai-objectives {
+  margin-top: 14px;
+  padding: 12px;
+  border-radius: 10px;
+  background: #f5eee0;
+  font-size: 0.85rem;
+}
+.ai-objectives p {
+  margin: 4px 0;
+}
+.ai-objectives strong {
+  color: #8b6332;
+}
+#ai-status {
+  margin-bottom: 0;
+}
+.versus-result {
+  margin-top: 20px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #f8f1e5;
+  text-align: left;
+}
+.versus-result h3 {
+  margin: 0 0 10px;
+  font-size: 1rem;
+}
+.versus-result p {
+  margin: 8px 0 14px;
+}
+#result-ai-shelf {
+  margin-top: 8px;
+}
+@media (max-width: 560px) {
+  .ai-panel {
+    padding: 12px;
+  }
+  .ai-shelf {
+    gap: 3px;
+    padding: 5px;
+  }
+  .ai-shelf .shelf-column {
+    padding: 2px;
+  }
+}
